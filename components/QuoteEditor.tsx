@@ -96,7 +96,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
             <tbody>
               {quote.sections.flatMap((s) => s.lines).concat(quote.lightLines).map((l) => (
                 <tr key={l.code}>
-                  <td>{l.name}{l.vn && <span className="vnTag">VN</span>}</td><td>{l.qty}</td>
+                  <td>{l.name}{l.vn && <span className="vnTag">VN</span>}{l.section === "light" && (l.smart ? <span className="smtTag">THÔNG MINH</span> : <span className="nrmTag">THƯỜNG</span>)}</td><td>{l.qty}</td>
                   <td><input type="number" value={l.price} style={{ width: 120 }} onChange={(e) => setItem(l.code.replace(/^prop_/, ""), { price: Number(e.target.value) })} /></td>
                   <td>{l.section === "light" ? "–" : <input type="number" step="1" value={Math.round(l.discount * 100)} style={{ width: 64 }} onChange={(e) => setItem(l.code, { discount: Number(e.target.value) / 100 })} />}{l.section !== "light" && "%"}</td>
                 </tr>
@@ -108,7 +108,15 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
             <label className="f">Chiết khấu đèn (%)<input type="number" value={settings.lightDiscount * 100} onChange={(e) => onSettings({ ...settings, lightDiscount: Number(e.target.value) / 100 })} /></label>
             <label className="f">Downlight báo giá bằng
               <select value={settings.defaultDownlight} onChange={(e) => onSettings({ ...settings, defaultDownlight: e.target.value as Settings["defaultDownlight"] })}>
-                <option value="downlight_ab">Downlight AB (thường)</option><option value="athena">Spotlight Athena thông minh</option><option value="spotlight_ab">Spotlight AB</option>
+                <option value="downlight_ab">Downlight AB – đèn THƯỜNG (248.000đ)</option>
+                <option value="downlight_fpt">Downlight THÔNG MINH FPT Athena CCT (484.000đ)</option>
+                <option value="athena">Spotlight THÔNG MINH FPT Athena (869.000đ)</option>
+                <option value="spotlight_ab">Spotlight AB – đèn THƯỜNG (588.000đ)</option>
+              </select></label>
+            <label className="f">Spotlight trên bản vẽ báo giá bằng
+              <select value={settings.defaultSpotlight ?? "spotlight_ab"} onChange={(e) => onSettings({ ...settings, defaultSpotlight: e.target.value as Settings["defaultSpotlight"] })}>
+                <option value="spotlight_ab">Spotlight AB – đèn THƯỜNG</option>
+                <option value="athena">Spotlight THÔNG MINH FPT Athena</option>
               </select></label>
             <label className="f">Gộp công tắc đặt sát nhau
               <select value={settings.mergeAdjacentSwitches ? "1" : "0"} onChange={(e) => onSettings({ ...settings, mergeAdjacentSwitches: e.target.value === "1" })}>
@@ -124,7 +132,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
               <span className="note">{propN ? `Đang có ${propN} spotlight đề xuất trên ${boq.proposals.length} trang.` : "Chưa có điểm đề xuất – ở bước Duyệt BOQ chọn “★ Spotlight đề xuất thêm” rồi Alt + click lên bản vẽ."}{propN > 0 && !doc && " (Cần mở kèm file PDF bản vẽ để in trang bản vẽ đề xuất.)"}</span></span></label>
           <label className="f" style={{ maxWidth: 320 }}>Loại đèn cho spotlight đề xuất
             <select value={settings.proposalSpot} onChange={(e) => onSettings({ ...settings, proposalSpot: e.target.value as Settings["proposalSpot"] })}>
-              <option value="athena">Spotlight Athena thông minh (chỉnh sáng/màu qua app)</option><option value="spotlight_ab">Spotlight AB thường</option></select></label>
+              <option value="athena">Spotlight THÔNG MINH FPT Athena (chỉnh sáng/màu qua app)</option><option value="spotlight_ab">Spotlight AB – đèn THƯỜNG</option></select></label>
           <hr />
           <div className="grid3">
             <label className="f"><span>Cổng tự động âm sàn AB Gate (số bộ) <span className="vnTag">Hàng Việt Nam</span></span>
@@ -150,6 +158,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
           <hr />
           <div className="kpi big"><span>TỔNG CỘNG</span><span>{vnd(quote.grandTotal)}</span></div>
           <p className="note"><i>{quote.grandWords}</i></p>
+          {quote.upgrade?.qty > 0 && <p className="note">Đèn thường AB: {quote.upgrade.qty} bộ. Nâng cấp hết lên đèn thông minh FPT Athena: thêm khoảng <b>{vnd(quote.upgrade.extra)}</b> – báo giá đã ghi rõ “ĐÈN THƯỜNG” để khách không hiểu nhầm.</p>}
           {checks.some((c) => c.severity !== "info") && <p className="warn">Còn {checks.filter((c) => c.severity !== "info").length} cảnh báo đối soát – sẽ được ghi vào ghi chú báo giá.</p>}
           {!reviewed && <p className="err">Cần mở bước Duyệt BOQ trước khi xuất (Nguyên tắc IV).</p>}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
