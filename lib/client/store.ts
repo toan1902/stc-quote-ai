@@ -4,12 +4,21 @@ import { DEFAULT_CATALOG, DEFAULT_SETTINGS } from "../core/catalog";
 
 const safe = <T,>(fn: () => T, fb: T): T => { try { return fn(); } catch { return fb; } };
 
+/** Bump when default prices change; codes listed for a revision drop any price saved on this machine before it. */
+const CATALOG_REV = 2;
+const REPRICED: Record<number, string[]> = { 2: ["ir", "curtain_motor", "gate_sw"] }; // theo bảng bán lẻ FPT 07/11/2026
 export const loadCatalog = (): CatalogItem[] => safe(() => {
-  const saved = JSON.parse(localStorage.getItem("stc_catalog") || "null") as CatalogItem[] | null;
+  let saved = JSON.parse(localStorage.getItem("stc_catalog") || "null") as CatalogItem[] | null;
   if (!saved) return DEFAULT_CATALOG;
+  const rev = Number(localStorage.getItem("stc_catalog_rev") || 1);
+  if (rev < CATALOG_REV) {
+    const drop = new Set(Object.entries(REPRICED).filter(([r]) => Number(r) > rev).flatMap(([, c]) => c));
+    saved = saved.filter((x) => !drop.has(x.code));
+    localStorage.setItem("stc_catalog", JSON.stringify(saved)); localStorage.setItem("stc_catalog_rev", String(CATALOG_REV));
+  }
   return DEFAULT_CATALOG.map((d) => ({ ...d, ...(saved.find((s) => s.code === d.code) ?? {}) }));
 }, DEFAULT_CATALOG);
-export const saveCatalog = (c: CatalogItem[]) => safe(() => localStorage.setItem("stc_catalog", JSON.stringify(c.map(({ code, price, discount, salePrice }) => ({ code, price, discount, salePrice })))), undefined);
+export const saveCatalog = (c: CatalogItem[]) => safe(() => (localStorage.setItem("stc_catalog_rev", String(CATALOG_REV)), localStorage.setItem("stc_catalog", JSON.stringify(c.map(({ code, price, discount, salePrice }) => ({ code, price, discount, salePrice }))))), undefined);
 
 export const loadSettings = (): Settings => safe(() => ({ ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("stc_settings") || "{}") }), DEFAULT_SETTINGS);
 export const saveSettings = (s: Settings) => safe(() => localStorage.setItem("stc_settings", JSON.stringify(s)), undefined);
