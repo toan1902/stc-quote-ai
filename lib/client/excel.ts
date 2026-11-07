@@ -106,7 +106,9 @@ export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settin
 
   // ---------- Chiếu sáng ----------
   const cs = wb.addWorksheet("Chiếu sáng");
-  header(cs, "BÁO GIÁ FPT SMART LIGHTING – CHIẾU SÁNG", 6);
+  const smartN = q.lightLines.filter((l) => l.smart).reduce((a, l) => a + l.qty, 0), plainN = q.lightLines.filter((l) => !l.smart).reduce((a, l) => a + l.qty, 0);
+  const lightTitle = !plainN ? "Smart Lighting – Đèn thông minh FPT" : !smartN ? "Chiếu sáng – đèn LED THƯỜNG thương hiệu AB" : "Chiếu sáng – đèn thông minh FPT + đèn LED thường AB";
+  header(cs, smartN ? "BÁO GIÁ CHIẾU SÁNG" : "BÁO GIÁ CHIẾU SÁNG – ĐÈN LED THƯỜNG", 6);
   hrow(cs, 8, ["STT", "Thiết bị", "ĐVT", "SL", "Đơn giá (đ)", "Thành tiền (đ)"]);
   r = 9;
   q.lightLines.forEach((l, k) => {
@@ -129,13 +131,18 @@ export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settin
   r++;
   cs.getCell(r, 1).value = `Ghi chú: chưa bao gồm ${boq.excluded.filter((x) => !/Ổ|Tủ|Wifi|RJ45|TV|Bình/.test(x.name)).map((x) => `${x.name} ${x.qty}${x.unit === "m" ? "m" : ""}`).join(", ")}.`;
   cs.mergeCells(r, 1, r, 6); cs.getCell(r, 1).font = font({ italic: true, size: 9 }); cs.getCell(r, 1).alignment = { wrapText: true };
+  if (plainN) {
+    r++;
+    cs.getCell(r, 1).value = `Lưu ý loại đèn: ${plainN} bộ đèn AB là đèn LED THƯỜNG (không thông minh) – bật/tắt theo mạch qua công tắc cảm ứng FPT, không chỉnh độ sáng/màu từng đèn.` + (q.upgrade.qty ? ` Nâng cấp ${q.upgrade.qty} bộ lên đèn thông minh FPT Athena: thêm khoảng ${q.upgrade.extra.toLocaleString("vi-VN")}đ (sau chiết khấu).` : "");
+    cs.mergeCells(r, 1, r, 6); cs.getCell(r, 1).font = font({ bold: true, size: 9, color: "FF92400E" }); cs.getCell(r, 1).alignment = { wrapText: true }; cs.getRow(r).height = 30;
+  }
   [6, 46, 7, 8, 16, 18].forEach((w, k) => (cs.getColumn(k + 1).width = w));
 
   // ---------- Tổng hợp (first) ----------
   header(th, "BẢNG TỔNG HỢP BÁO GIÁ GIẢI PHÁP NHÀ THÔNG MINH", 6);
   hrow(th, 8, ["STT", "Hạng mục", "Thiết bị niêm yết (đ)", "Giảm giá (đ)", "Lắp đặt (đ)", "Tổng cộng (đ)"]);
   th.getRow(9).values = [1, "Smart Home FPT", { formula: `'Smart Home'!H${T.niem}` }, { formula: `'Smart Home'!H${T.giam}` }, { formula: `'Smart Home'!H${T.ld}` }, { formula: `'Smart Home'!H${T.tong}` }];
-  th.getRow(10).values = [2, "Smart Lighting – Chiếu sáng", { formula: `'Chiếu sáng'!F${L.tot}` }, { formula: `'Chiếu sáng'!F${L.ck}` }, { formula: `'Chiếu sáng'!F${L.ld}` }, { formula: `'Chiếu sáng'!F${L.sum}` }];
+  th.getRow(10).values = [2, lightTitle, { formula: `'Chiếu sáng'!F${L.tot}` }, { formula: `'Chiếu sáng'!F${L.ck}` }, { formula: `'Chiếu sáng'!F${L.ld}` }, { formula: `'Chiếu sáng'!F${L.sum}` }];
   th.getRow(11).values = ["", "TỔNG CỘNG", { formula: "SUM(C9:C10)" }, { formula: "SUM(D9:D10)" }, { formula: "SUM(E9:E10)" }, { formula: "SUM(F9:F10)" }];
   for (let rr = 9; rr <= 11; rr++) for (let c = 1; c <= 6; c++) { const cell = th.getCell(rr, c); cell.border = border; cell.numFmt = NUM; cell.font = font({ bold: rr === 11, color: c >= 3 && rr < 11 ? GREEN : undefined }); }
   th.getCell(13, 1).value = `Bằng chữ: ${q.grandWords}`; th.mergeCells(13, 1, 13, 6); th.getCell(13, 1).font = font({ italic: true });
