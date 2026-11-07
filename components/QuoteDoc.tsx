@@ -34,6 +34,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   const kh = P.customer, dc = P.address;
   const swN = boq.switches.length, camN = boq.cameras.length, curN = boq.curtains.length, railM = boq.curtains.reduce((a, c) => a + c.meters, 0);
   const irN = boq.lines.find((l) => l.code === "ir")?.qty ?? 0;
+  const hubName = q.sections.flatMap((s) => s.lines).find((l) => l.code === "hub" || l.code === "hub_pb650")?.name.replace(/^Bộ điều khiển trung tâm /, "") ?? "FPT T950";
   const gateLine = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_ab");
   const gateN = gateLine?.qty ?? 0;
   const lightN = q.lightLines.reduce((a, l) => a + l.qty, 0);
@@ -61,7 +62,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         <Info kh={kh} dc={dc} r1={<><b>Ngày lập báo giá:</b> {P.date}</>} r2={<><b>Hiệu lực báo giá:</b> 30 ngày kể từ ngày lập</>} />
         <table className="t sum"><thead><tr><th style={{ width: "5%" }}>STT</th><th>Hạng mục báo giá</th><th style={{ width: "13%" }}>Thiết bị niêm yết (đ)</th><th style={{ width: "12%" }}>Giảm giá (đ)</th><th style={{ width: "11%" }}>Lắp đặt (đ)</th><th style={{ width: "13%" }}>Tổng cộng (đ)</th><th style={{ width: "9%" }}>Chi tiết</th></tr></thead>
           <tbody>
-            <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swN} công tắc cảm ứng, bộ trung tâm T950 + mở rộng sóng ZigBee{irN ? `, ${irN} bộ IR điều hòa` : ""}{gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
+            <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swN} công tắc cảm ứng, bộ trung tâm {hubName} + mở rộng sóng ZigBee{irN ? `, ${irN} bộ IR điều hòa` : ""}{gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
               <td className="r">{vnd(q.niem)}</td><td className="r">{vnd(q.giam)}</td><td className="r">{vnd(q.lapDat)}</td><td className="r b">{vnd(q.shTotal)}</td><td className="c">Phần 1<br />(4 trang)</td></tr>
             <tr><td className="c">2</td><td><div className="it">{lightTitle}</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng){plainN > 0 ? ". Đèn thường: bật/tắt theo mạch qua công tắc FPT, không chỉnh sáng/màu từng đèn." : "."}</div></td>
               <td className="r">{vnd(q.lNiem)}</td><td className="r">{vnd(-q.lCk)}</td><td className="r">{vnd(q.lInstall)}{!q.lInstall && <><br /><span className="gr sm">(thợ điện lắp)</span></>}</td><td className="r b">{vnd(q.lTotal)}</td><td className="c">Phần 2<br />(2 trang)</td></tr>
@@ -177,10 +178,10 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
             <table className="t sm2"><thead><tr><th>STT</th><th>Tầng</th><th>Vị Trí</th><th>Vật Tư</th><th>SL</th><th>Công Năng</th></tr></thead><tbody>
               {boq.cameras.map((c, i) => <tr key={c.id}><td className="c">{i + 1}</td><td>{c.floor || "Tầng 1"}</td><td>Camera {i + 1}</td><td className="nw"><b>{c.type === "camera_outdoor" ? "FPT Camera SE 2S" : "FPT Camera SE 3"}</b></td><td className="c"><b>1</b></td><td>Quan sát {(c.room || "").toLowerCase()}</td></tr>)}</tbody></table></div>
         </div>
-        <div className="pn"><div className="pt">BỐ TRÍ ĐIỀU KHIỂN ĐIỀU HÒA THÔNG MINH IR ({irN} BỘ) &amp; BỘ TRUNG TÂM T950 ({boq.hubs} BỘ)</div>
+        <div className="pn"><div className="pt">BỐ TRÍ ĐIỀU KHIỂN ĐIỀU HÒA THÔNG MINH IR ({irN} BỘ) &amp; BỘ TRUNG TÂM {hubName.toUpperCase()} ({boq.hubs} BỘ)</div>
           <table className="t sm2"><thead><tr><th>STT</th><th>Tầng</th><th>Vị Trí</th><th>Vật Tư</th><th>SL</th><th>Công Năng</th></tr></thead><tbody>
             {boq.acRooms.map((r, i) => <tr key={i}><td className="c">{i + 1}</td><td>{boq.acFloors?.[i] ?? "Tầng 1"}</td><td>{r}</td><td><b>Bộ điều khiển IR IEWG011</b></td><td className="c"><b>1</b></td><td>Điều khiển điều hòa {r}, hẹn giờ, tự động tắt khi không có người</td></tr>)}
-            <tr><td className="c">{boq.acRooms.length + 1}</td><td>{boq.floors.join(", ") || "Tầng 1"}</td><td>Phòng khách</td><td><b>Bộ trung tâm T950 + mở rộng sóng ZigBee 3.0</b></td><td className="c"><b>{boq.hubs * 2}</b></td><td>Trung tâm điều khiển &amp; phủ sóng toàn bộ hệ thống</td></tr></tbody></table></div>
+            <tr><td className="c">{boq.acRooms.length + 1}</td><td>{boq.floors.join(", ") || "Tầng 1"}</td><td>Phòng khách</td><td><b>Bộ trung tâm {hubName} + mở rộng sóng ZigBee 3.0</b></td><td className="c"><b>{boq.hubs * 2}</b></td><td>Trung tâm điều khiển &amp; phủ sóng toàn bộ hệ thống</td></tr></tbody></table></div>
         <div className="box note"><div className="nt">QUY CHUẨN THI CÔNG, DỊCH VỤ &amp; ĐIỀU KHOẢN THƯƠNG MẠI CỦA CÔNG TY TNHH ĐẦU TƯ VÀ CÔNG NGHỆ STC:</div><ul>
           <li><b>Phạm vi dịch vụ:</b> Lắp đặt toàn bộ thiết bị điện thông minh, cài đặt vào Bộ điều khiển trung tâm, phân phòng và thiết lập kịch bản tự động hóa cho từng phòng.</li>
           <li><b>Phần mềm &amp; Bảo hành:</b> Miễn phí phần mềm FPT Life trọn đời. Bảo hành chính hãng 24 tháng tận nơi.</li>
