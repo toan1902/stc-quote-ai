@@ -137,3 +137,7 @@
 .qroot table.gt th:nth-child(1){width:4%}
 .qroot table.gt .ds{font-size:9.5px;line-height:1.35}
 .qroot table.gt .it{font-size:11px}
+.qroot .smt,.qroot .nrm{display:inline-block;margin-top:3px;padding:1px 6px;border-radius:3px;font-size:8px;font-weight:700;letter-spacing:.2px}
+.qroot .smt{background:#16a34a;color:#fff}
+.qroot .nrm{background:#e5e7eb;color:#374151;border:1px solid #9ca3af}
+.qroot td.xnote{font-size:9.5px;background:#fffbeb;border:1px solid #f59e0b;color:#78350f;line-height:1.4}
