@@ -57,6 +57,7 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
 
         <h3>Điều 1. Nội dung hợp đồng</h3>
         <p>Bên B cung cấp thiết bị chính hãng, lắp đặt, cài đặt cấu hình hệ thống FPT Smart Home và thiết bị chiếu sáng cho công trình của Bên A tại địa chỉ nêu trên, theo chủng loại, số lượng và đơn giá tại <b>Phụ lục 01</b> đính kèm (là một phần không tách rời của hợp đồng). Bên B ưu tiên sử dụng sản phẩm thương hiệu Việt Nam.</p>
+        {lLines.some((l) => !l.smart) && <p>Đèn chiếu sáng ghi “đèn THƯỜNG” (thương hiệu AB) là đèn LED thường, được bật/tắt theo mạch qua công tắc cảm ứng FPT; không có chức năng chỉnh độ sáng, nhiệt độ màu riêng từng đèn. Chỉ các đèn ghi “THÔNG MINH FPT” mới có các chức năng này.</p>}
         <table className="t"><thead><tr><th>STT</th><th>Hạng mục</th><th>Giá trị (đồng)</th></tr></thead><tbody>
           <tr><td className="c">1</td><td>Giải pháp FPT Smart Home (thiết bị sau giảm giá + lắp đặt, cấu hình)</td><td className="r">{vnd(q.shTotal)}</td></tr>
           <tr><td className="c">2</td><td>Giải pháp chiếu sáng (sau chiết khấu)</td><td className="r">{vnd(q.lTotal)}</td></tr>
