@@ -10,6 +10,8 @@ export interface Quote {
   sections: QuoteSection[];
   niem: number; giam: number; sau: number; lapDat: number; kmLapDat: number; freeList: number; shTotal: number; shWords: string;
   lightLines: QuoteLine[]; lNiem: number; lCk: number; lInstall: number; lTotal: number;
+  /** nâng cấp toàn bộ đèn thường AB → đèn thông minh FPT: số bộ và chi phí thêm (sau chiết khấu) */
+  upgrade: { qty: number; extra: number };
   grandNiem: number; grandGiam: number; grandTotal: number; grandWords: string;
 }
 
@@ -46,13 +48,21 @@ export function computeQuote(boq: BOQResult, catalog: CatalogItem[], s: Settings
   const kmLapDat = Math.round(freeList * s.installRate);
   const shTotal = sau + lapDat;
 
-  const lightQty: Record<string, number> = { athena: 0, spotlight_ab: 0, downlight_ab: 0, tube_ab: 0 };
+  // smart FPT lights first so the customer sees clearly which fixtures are smart and which are ordinary
+  const lightQty: Record<string, number> = { athena: 0, downlight_fpt: 0, spotlight_ab: 0, downlight_ab: 0, tube_ab: 0 };
   lightQty[s.defaultDownlight] += q("downlight");
-  lightQty.spotlight_ab += q("spotlight");
+  lightQty[s.defaultSpotlight ?? "spotlight_ab"] += q("spotlight");
   for (const k of Object.keys(lightQty)) if (overrides[`light_${k}`] != null) lightQty[k] = overrides[`light_${k}`];
   const lightLines: QuoteLine[] = Object.entries(lightQty).filter(([, n]) => n > 0).map(([code, n]) => {
     const c = cat(code); return { ...c, qty: n, after: c.price, total: c.price * n, listTotal: c.price * n };
   });
+  // what it would cost (after lighting discount) to upgrade every ordinary AB light to its FPT smart equivalent
+  const SMART_EQ: Record<string, string> = { downlight_ab: "downlight_fpt", spotlight_ab: "athena" };
+  const upgradeLines = lightLines.filter((l) => !l.smart && SMART_EQ[l.code]);
+  const upgrade = {
+    qty: upgradeLines.reduce((a, l) => a + l.qty, 0),
+    extra: Math.round(upgradeLines.reduce((a, l) => a + (cat(SMART_EQ[l.code]).price - l.price) * l.qty, 0) * (1 - s.lightDiscount)),
+  };
   // STC proposal: extra spotlights the drawing does not have — separate line so the customer sees it
   const propQty = s.includeProposal ? overrides.light_prop ?? q("spotlight_prop") : 0;
   if (propQty > 0) {
@@ -67,7 +77,7 @@ export function computeQuote(boq: BOQResult, catalog: CatalogItem[], s: Settings
   const grandTotal = shTotal + lTotal;
   return {
     sections, niem, giam, sau, lapDat, kmLapDat, freeList, shTotal, shWords: docSo(shTotal),
-    lightLines, lNiem, lCk, lInstall, lTotal,
+    lightLines, lNiem, lCk, lInstall, lTotal, upgrade,
     grandNiem: niem + lNiem, grandGiam: giam - lCk, grandTotal, grandWords: docSo(grandTotal),
   };
 }
