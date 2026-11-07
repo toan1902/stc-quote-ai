@@ -9,7 +9,7 @@ export const loadCatalog = (): CatalogItem[] => safe(() => {
   if (!saved) return DEFAULT_CATALOG;
   return DEFAULT_CATALOG.map((d) => ({ ...d, ...(saved.find((s) => s.code === d.code) ?? {}) }));
 }, DEFAULT_CATALOG);
-export const saveCatalog = (c: CatalogItem[]) => safe(() => localStorage.setItem("stc_catalog", JSON.stringify(c.map(({ code, price, discount }) => ({ code, price, discount })))), undefined);
+export const saveCatalog = (c: CatalogItem[]) => safe(() => localStorage.setItem("stc_catalog", JSON.stringify(c.map(({ code, price, discount, salePrice }) => ({ code, price, discount, salePrice })))), undefined);
 
 export const loadSettings = (): Settings => safe(() => ({ ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("stc_settings") || "{}") }), DEFAULT_SETTINGS);
 export const saveSettings = (s: Settings) => safe(() => localStorage.setItem("stc_settings", JSON.stringify(s)), undefined);
