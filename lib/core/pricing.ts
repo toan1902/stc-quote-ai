@@ -23,7 +23,7 @@ export function computeQuote(boq: BOQResult, catalog: CatalogItem[], s: Settings
     return { ...c, qty, after, total: after * qty, listTotal: c.price * qty };
   };
   const shQty: Record<string, number> = {
-    sw1: q("sw1"), sw2: q("sw2"), sw3: q("sw3"), sw4: q("sw4"), hub: q("hub"), zigbee: q("zigbee"), ir: q("ir"),
+    sw1: q("sw1"), sw2: q("sw2"), sw3: q("sw3"), sw4: q("sw4"), hub: (s.hubModel ?? "hub") === "hub" ? q("hub") : 0, hub_pb650: s.hubModel === "hub_pb650" ? q("hub") : 0, zigbee: q("zigbee"), ir: q("ir"),
     gate_ab: overrides.gate_ab ?? 0,
     gate_sw: overrides.gate_sw ?? 0,
     curtain_sw: q("curtain_sw"), curtain_motor: q("curtain_motor"), rail: q("rail"),
