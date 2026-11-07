@@ -18,9 +18,9 @@ export interface PrintPayload {
 }
 interface ShareInfo { id: string; version: number; status: "live" | "locked"; updatedAt: string; deposit?: { amount: number; date: string; method: string; phone?: string }; contractNo?: string }
 
-export default function QuoteEditor({ project, doc, boq, quote, checks, catalog, settings, onCatalog, onSettings, onProject, onExported }: {
+export default function QuoteEditor({ project, doc, boq, quote, checks, catalog, settings, onCatalog, onSettings, onSaveDefaults, onProject, onExported }: {
   project: Project; doc: PdfDoc | null; boq: BOQResult; quote: Quote; checks: CrossCheck[]; catalog: CatalogItem[]; settings: Settings;
-  onCatalog: (c: CatalogItem[]) => void; onSettings: (s: Settings) => void; onProject: (patch: Partial<Project>) => void; onExported: () => void;
+  onCatalog: (c: CatalogItem[]) => void; onSettings: (s: Settings) => void; onSaveDefaults: () => void; onProject: (patch: Partial<Project>) => void; onExported: () => void;
 }) {
   const reviewed = canExport(project);
   const name = `BAO_GIA_TONG_HOP_${slug(project.customer)}_STC_CROP`;
@@ -43,7 +43,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
     window.open("/quote/print", "_blank"); onExported();
   };
   const excel = async () => { download(`${name}.xlsx`, await buildExcel(project, boq, quote, settings, checks), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); onExported(); };
-  const json = () => download(`TAKEOFF_${slug(project.customer)}.json`, JSON.stringify(exportTakeoff(project), null, 1), "application/json");
+  const json = () => download(`HOSO_${slug(project.customer)}_${slug(project.address)}.json`, JSON.stringify(exportTakeoff(project), null, 1), "application/json");
 
   // ---------- online link ----------
   const [share, setShare] = useState<ShareInfo | null>(null);
@@ -56,7 +56,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
 
   useEffect(() => { // load status of an existing link
     if (!project.shareId) { setShare(null); return; }
-    fetch(`/api/share/${project.shareId}`).then((r) => r.json()).then((j) => j.record && setShare(j.record)).catch(() => {});
+    fetch(`/api/share/${project.shareId}`).then((r) => r.json()).then((j) => { if (j.record) { setShare(j.record); if (j.record.status !== project.shareStatus) onProject({ shareStatus: j.record.status }); } }).catch(() => {});
   }, [project.shareId]);
 
   const push = async (auto = false) => {
@@ -66,7 +66,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
     try {
       const r = await fetch("/api/share", { method: "POST", headers: { "content-type": "application/json" }, body });
       const j = await r.json();
-      if (j.record) { setShare(j.record); if (j.record.id !== project.shareId) onProject({ shareId: j.record.id }); }
+      if (j.record) { setShare(j.record); if (j.record.id !== project.shareId || j.record.status !== project.shareStatus) onProject({ shareId: j.record.id, shareStatus: j.record.status }); }
       if (!r.ok) setShareMsg(j.error || `Lỗi ${r.status}`); else lastSent.current = body;
     } catch (e) { setShareMsg((e as Error).message); } finally { setSyncing(false); }
   };
@@ -83,14 +83,15 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
     if (action === "unlock" && !confirm("Mở khoá để sửa báo giá? Link khách đang xem sẽ cập nhật lại theo thay đổi mới.")) return;
     if (action === "lock") await push(); // send the final numbers before freezing
     const r = await fetch(`/api/share/${share.id}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, deposit: { ...dep, amount: Number(dep.amount) } }) });
-    const j = await r.json(); if (j.record) setShare(j.record); setShareMsg(r.ok ? "" : j.error);
+    const j = await r.json(); if (j.record) { setShare(j.record); onProject({ shareStatus: j.record.status }); } setShareMsg(r.ok ? "" : j.error);
   };
 
   return (
     <div className="grid2" style={{ gridTemplateColumns: "1.3fr 1fr" }}>
       <div>
         <div className="card">
-          <h2>Bảng giá & chiết khấu (lưu trên máy này)</h2>
+          <h2>Bảng giá & chiết khấu</h2>
+          <p className="note">Đơn giá: dùng chung cho mọi khách (bảng giá công ty). Các lựa chọn bên dưới (loại đèn, bộ trung tâm, % lắp đặt/chiết khấu…): <b>riêng cho khách {project.customer}</b>. <button className="ghost" onClick={() => { onSaveDefaults(); alert("Đã lưu làm mặc định cho khách mới."); }}>Lưu làm mặc định cho khách mới</button></p>
           <table className="t">
             <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá niêm yết</th><th>Giảm</th></tr></thead>
             <tbody>
@@ -169,7 +170,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
             <button className="primary" disabled={!reviewed || busyPdf} onClick={printPdf}>{busyPdf ? "Đang dựng bản vẽ đề xuất…" : `In / Lưu PDF${settings.includeProposal && propN ? " (kèm bản vẽ đề xuất)" : " 7 trang"}`}</button>
             <button disabled={!reviewed} onClick={excel}>Tải Excel</button>
             <button disabled={!reviewed} onClick={async () => download(`BOQ_KY_THUAT_${slug(project.customer)}.xlsx`, await buildTechBoq(project, boq), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}>Tải BOQ kỹ thuật</button>
-            <button onClick={json}>Xuất takeoff JSON</button>
+            <button onClick={json}>Tải hồ sơ khách (.json)</button>
           </div>
           <p className="note">PDF: trong hộp thoại in chọn “Lưu dưới dạng PDF”, khổ A4, lề “Không”, bật “Đồ hoạ nền”.</p>
         </div>
