@@ -127,15 +127,15 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
               <option value="athena">Spotlight Athena thông minh (chỉnh sáng/màu qua app)</option><option value="spotlight_ab">Spotlight AB thường</option></select></label>
           <hr />
           <div className="grid3">
-            <label className="f">Cổng tự động âm sàn AB (số bộ) <span className="vnTag">Hàng Việt Nam</span>
+            <label className="f"><span>Cổng tự động âm sàn AB Gate (số bộ) <span className="vnTag">Hàng Việt Nam</span></span>
               <input type="number" min={0} value={gateN} onChange={(e) => onProject({ extras: { ...project.extras, gate_ab: Math.max(0, Number(e.target.value) || 0) } })} /></label>
-            <label className="f">Đơn giá 1 bộ cổng AB (đ)
+            <label className="f">Giá niêm yết 1 bộ (đ)
               <input type="number" min={0} value={gate?.price ?? 0} onChange={(e) => setItem("gate_ab", { price: Number(e.target.value) })} /></label>
-            <label className="f">Giảm giá cổng (%)
-              <input type="number" min={0} value={Math.round((gate?.discount ?? 0) * 100)} onChange={(e) => setItem("gate_ab", { discount: Number(e.target.value) / 100 })} /></label>
+            <label className="f">Giá bán sau giảm 1 bộ (đ)
+              <input type="number" min={0} value={gate?.salePrice ?? 0} onChange={(e) => { const v = Number(e.target.value) || 0; setItem("gate_ab", { salePrice: v, discount: gate?.price ? Math.max(0, 1 - v / gate.price) : 0 }); }} /></label>
           </div>
           {gateN > 0 && !(gate?.price) && <p className="warn">Nhập đơn giá bộ cổng AB – chưa có giá thì cổng chưa được đưa vào báo giá.</p>}
-          {gateN > 0 && !!gate?.price && <p className="note">Báo giá tự thêm {gateN} công tắc điều khiển cổng FPT để mở cổng qua app/kịch bản. Phí lắp đặt cổng tính chung {Math.round(settings.installRate * 100)}% như Smart Home – sửa % ở trên nếu cần (đào rãnh, đổ bê tông hố motor tính riêng).</p>}
+          {gateN > 0 && !!gate?.price && <p className="note">Báo giá tự thêm {gateN} công tắc điều khiển cổng FPT (mở cổng qua app/kịch bản) và 1 trang “Dự toán cổng tự động AB Gate”. Lắp đặt, cài hành trình cổng: <b>miễn phí</b> khi chọn hệ sinh thái FPT Smart Home. Chưa gồm pin Lithium, xây hố/đế âm sàn, thoát nước, đường điện tới chân cổng.</p>}
         </div>
       </div>
 
