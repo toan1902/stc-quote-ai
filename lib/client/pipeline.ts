@@ -24,8 +24,9 @@ export async function ai<T>(task: string, image: string, context: Record<string,
     if (r.status === 401) throw new Error("Phiên đăng nhập hết hạn – đăng nhập lại");
     const j = await r.json().catch(() => ({}));
     if (r.ok) return j.data as T;
-    if (attempt >= 4) throw new Error(j.detail || `Lỗi AI (${r.status})`);
-    log(`Lỗi AI tạm thời (${r.status}) – thử lại…`);
+    const slow = r.status === 504 || r.status === 502;
+    if (attempt >= (slow ? 7 : 4)) throw new Error(j.detail || `Lỗi AI (${r.status}) – bấm chạy lại, các trang đã xong được giữ nguyên`);
+    log(slow ? `AI trả lời quá chậm (${r.status}) – thử lại (lần ${attempt + 1})…` : `Lỗi AI tạm thời (${r.status}) – thử lại…`);
     await sleep(4000 * (attempt + 1));
   }
   throw new Error("AI quá tải, thử lại sau");

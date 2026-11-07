@@ -39,23 +39,39 @@ async function callGemini(prompt: string, image: string, model: string): Promise
   throw last instanceof Error ? last : new RateLimitError(20);
 }
 
+// Gemini 3+ dùng thinkingLevel, Gemini 2.5 dùng thinkingBudget; model không nhận cấu hình nào thì gọi không cấu hình.
+// Mức "low" để mỗi lượt trả lời nhanh, tránh Vercel cắt 504. Ghi nhớ cấu hình hợp lệ theo model.
+const THINK: Record<string, number> = {};
+const THINK_CFGS = [{ thinkingLevel: process.env.GEMINI_THINKING_LEVEL || "low" }, { thinkingBudget: Number(process.env.GEMINI_THINKING_BUDGET ?? 1024) }, null];
+
 async function callGeminiOnce(prompt: string, image: string, model: string): Promise<string> {
   const { mime, b64 } = splitDataUrl(image);
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY! },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ inline_data: { mime_type: mime, data: b64 } }, { text: prompt }] }],
-      generationConfig: { temperature: 0, responseMimeType: "application/json" },
-    }),
-  });
-  if (r.status === 429 || r.status === 503 || r.status === 500) throw new RateLimitError(Number(r.headers.get("retry-after")) || 20);
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    if (TRANSIENT.test(JSON.stringify(j))) throw new RateLimitError(20);
-    throw new ProviderError(`Gemini ${r.status}: ${j?.error?.message ?? ""}`);
+  for (let k = THINK[model] ?? 0; k < THINK_CFGS.length; k++) {
+    const cfg = THINK_CFGS[k];
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY! },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ inline_data: { mime_type: mime, data: b64 } }, { text: prompt }] }],
+        generationConfig: { temperature: 0, responseMimeType: "application/json", ...(cfg ? { thinkingConfig: cfg } : {}) },
+      }),
+      signal: AbortSignal.timeout(Number(process.env.AI_TIMEOUT_MS ?? 80000)),
+    }).catch((e: Error) => {
+      // quá thời gian → coi như quá tải để chuyển sang model nhẹ hơn / client thử lại
+      if (e.name === "TimeoutError" || e.name === "AbortError") throw new RateLimitError(5);
+      throw e;
+    });
+    if (r.status === 429 || r.status === 503 || r.status === 500) throw new RateLimitError(Number(r.headers.get("retry-after")) || 20);
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 400 && cfg && /thinking/i.test(JSON.stringify(j))) continue; // model không nhận cấu hình này → thử cấu hình kế
+    if (!r.ok) {
+      if (TRANSIENT.test(JSON.stringify(j))) throw new RateLimitError(20);
+      throw new ProviderError(`Gemini ${r.status}: ${j?.error?.message ?? ""}`);
+    }
+    THINK[model] = k;
+    return (j.candidates?.[0]?.content?.parts ?? []).filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text ?? "").join("");
   }
-  return (j.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
+  throw new ProviderError("Gemini: không gọi được model");
 }
 
 async function callClaude(prompt: string, image: string, model: string): Promise<string> {
