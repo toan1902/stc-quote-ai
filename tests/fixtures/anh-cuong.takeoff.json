@@ -1,0 +1,1451 @@
+{
+ "version": 1,
+ "project": {
+  "customer": "Anh Cường",
+  "address": "Đắk Lắk",
+  "date": "06/11/2026",
+  "sourceName": "MEP_-A_CUONG_26.10.27.pdf"
+ },
+ "pages": [
+  {
+   "index": 2,
+   "discipline": "power",
+   "floor": "Tầng 1",
+   "title": "ME-04 Mặt bằng cấp nguồn"
+  },
+  {
+   "index": 3,
+   "discipline": "other",
+   "floor": "Mái"
+  },
+  {
+   "index": 4,
+   "discipline": "lighting",
+   "floor": "Tầng 1",
+   "title": "ME-06 Mặt bằng chiếu sáng"
+  },
+  {
+   "index": 5,
+   "discipline": "low_voltage",
+   "floor": "Tầng 1",
+   "title": "ME-07 Điện nhẹ"
+  },
+  {
+   "index": 10,
+   "discipline": "hvac",
+   "floor": "Tầng 1",
+   "title": "ME-12 Điều hòa"
+  },
+  {
+   "index": 13,
+   "discipline": "legend",
+   "floor": ""
+  },
+  {
+   "index": 14,
+   "discipline": "panel",
+   "floor": ""
+  }
+ ],
+ "detections": [
+  {
+   "id": "f1",
+   "page": 4,
+   "type": "downlight",
+   "room": "Sảnh + hiên trước",
+   "x": 0.4,
+   "y": 0.7,
+   "circuits": "1"
+  },
+  {
+   "id": "f2",
+   "page": 4,
+   "type": "downlight",
+   "room": "Sảnh + hiên trước",
+   "x": 0.42,
+   "y": 0.7,
+   "circuits": "1"
+  },
+  {
+   "id": "f3",
+   "page": 4,
+   "type": "downlight",
+   "room": "Sảnh + hiên trước",
+   "x": 0.44,
+   "y": 0.7,
+   "circuits": "1"
+  },
+  {
+   "id": "f4",
+   "page": 4,
+   "type": "downlight",
+   "room": "Sảnh + hiên trước",
+   "x": 0.46,
+   "y": 0.7,
+   "circuits": "1"
+  },
+  {
+   "id": "f5",
+   "page": 4,
+   "type": "downlight",
+   "room": "Sảnh + hiên trước",
+   "x": 0.4,
+   "y": 0.72,
+   "circuits": "1"
+  },
+  {
+   "id": "f6",
+   "page": 4,
+   "type": "downlight",
+   "room": "Sảnh + hiên trước",
+   "x": 0.42,
+   "y": 0.72,
+   "circuits": "1"
+  },
+  {
+   "id": "f7",
+   "page": 4,
+   "type": "downlight",
+   "room": "Sảnh + hiên trước",
+   "x": 0.44,
+   "y": 0.72,
+   "circuits": "1"
+  },
+  {
+   "id": "f8",
+   "page": 4,
+   "type": "downlight",
+   "room": "Sảnh + hiên trước",
+   "x": 0.46,
+   "y": 0.72,
+   "circuits": "1"
+  },
+  {
+   "id": "f9",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.3,
+   "y": 0.5,
+   "circuits": "3"
+  },
+  {
+   "id": "f10",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.32,
+   "y": 0.5,
+   "circuits": "3"
+  },
+  {
+   "id": "f11",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.34,
+   "y": 0.5,
+   "circuits": "3"
+  },
+  {
+   "id": "f12",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.36,
+   "y": 0.5,
+   "circuits": "3"
+  },
+  {
+   "id": "f13",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.3,
+   "y": 0.52,
+   "circuits": "3"
+  },
+  {
+   "id": "f14",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.32,
+   "y": 0.52,
+   "circuits": "3"
+  },
+  {
+   "id": "f15",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.34,
+   "y": 0.52,
+   "circuits": "3"
+  },
+  {
+   "id": "f16",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.36,
+   "y": 0.52,
+   "circuits": "3"
+  },
+  {
+   "id": "f17",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.3,
+   "y": 0.54,
+   "circuits": "3"
+  },
+  {
+   "id": "f18",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.32,
+   "y": 0.54,
+   "circuits": "3"
+  },
+  {
+   "id": "f19",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.34,
+   "y": 0.54,
+   "circuits": "3"
+  },
+  {
+   "id": "f20",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.36,
+   "y": 0.54,
+   "circuits": "3"
+  },
+  {
+   "id": "f21",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.3,
+   "y": 0.56,
+   "circuits": "3"
+  },
+  {
+   "id": "f22",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng khách + hành lang",
+   "x": 0.32,
+   "y": 0.56,
+   "circuits": "3"
+  },
+  {
+   "id": "f23",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.45,
+   "y": 0.2,
+   "circuits": "5"
+  },
+  {
+   "id": "f24",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.47,
+   "y": 0.2,
+   "circuits": "5"
+  },
+  {
+   "id": "f25",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.49,
+   "y": 0.2,
+   "circuits": "5"
+  },
+  {
+   "id": "f26",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.51,
+   "y": 0.2,
+   "circuits": "5"
+  },
+  {
+   "id": "f27",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.45,
+   "y": 0.22,
+   "circuits": "5"
+  },
+  {
+   "id": "f28",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.47,
+   "y": 0.22,
+   "circuits": "5"
+  },
+  {
+   "id": "f29",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.49,
+   "y": 0.22,
+   "circuits": "5"
+  },
+  {
+   "id": "f30",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.51,
+   "y": 0.22,
+   "circuits": "5"
+  },
+  {
+   "id": "f31",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.45,
+   "y": 0.24,
+   "circuits": "5"
+  },
+  {
+   "id": "f32",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.47,
+   "y": 0.24,
+   "circuits": "5"
+  },
+  {
+   "id": "f33",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.49,
+   "y": 0.24,
+   "circuits": "5"
+  },
+  {
+   "id": "f34",
+   "page": 4,
+   "type": "downlight",
+   "room": "Khu bếp + ăn",
+   "x": 0.51,
+   "y": 0.24,
+   "circuits": "5"
+  },
+  {
+   "id": "f35",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng thờ",
+   "x": 0.55,
+   "y": 0.4,
+   "circuits": "7"
+  },
+  {
+   "id": "f36",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng thờ",
+   "x": 0.57,
+   "y": 0.4,
+   "circuits": "7"
+  },
+  {
+   "id": "f37",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng thờ",
+   "x": 0.59,
+   "y": 0.4,
+   "circuits": "7"
+  },
+  {
+   "id": "f38",
+   "page": 4,
+   "type": "downlight",
+   "room": "Phòng thờ",
+   "x": 0.61,
+   "y": 0.4,
+   "circuits": "7"
+  },
+  {
+   "id": "f39",
+   "page": 4,
+   "type": "downlight",
+   "room": "Hiên hông (cửa P.Thờ)",
+   "x": 0.6,
+   "y": 0.5,
+   "circuits": "9"
+  },
+  {
+   "id": "f40",
+   "page": 4,
+   "type": "downlight",
+   "room": "Hiên hông (cửa P.Thờ)",
+   "x": 0.62,
+   "y": 0.5,
+   "circuits": "9"
+  },
+  {
+   "id": "f41",
+   "page": 4,
+   "type": "downlight",
+   "room": "Hiên hông (cửa P.Thờ)",
+   "x": 0.64,
+   "y": 0.5,
+   "circuits": "9"
+  },
+  {
+   "id": "f42",
+   "page": 4,
+   "type": "downlight",
+   "room": "Hiên hông (cửa P.Thờ)",
+   "x": 0.66,
+   "y": 0.5,
+   "circuits": "9"
+  },
+  {
+   "id": "f43",
+   "page": 4,
+   "type": "downlight",
+   "room": "Hiên P.Ngủ 1",
+   "x": 0.2,
+   "y": 0.8,
+   "circuits": "11"
+  },
+  {
+   "id": "f44",
+   "page": 4,
+   "type": "downlight",
+   "room": "Hiên P.Ngủ 1",
+   "x": 0.22,
+   "y": 0.8,
+   "circuits": "11"
+  },
+  {
+   "id": "f45",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 1",
+   "x": 0.18,
+   "y": 0.62,
+   "circuits": "13"
+  },
+  {
+   "id": "f46",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 1",
+   "x": 0.2,
+   "y": 0.62,
+   "circuits": "13"
+  },
+  {
+   "id": "f47",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 1",
+   "x": 0.22,
+   "y": 0.62,
+   "circuits": "13"
+  },
+  {
+   "id": "f48",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 1",
+   "x": 0.18,
+   "y": 0.66,
+   "circuits": "14"
+  },
+  {
+   "id": "f49",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 1",
+   "x": 0.2,
+   "y": 0.66,
+   "circuits": "14"
+  },
+  {
+   "id": "f50",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 1",
+   "x": 0.22,
+   "y": 0.66,
+   "circuits": "14"
+  },
+  {
+   "id": "f51",
+   "page": 4,
+   "type": "downlight",
+   "room": "WC 1",
+   "x": 0.22,
+   "y": 0.55,
+   "circuits": "17"
+  },
+  {
+   "id": "f52",
+   "page": 4,
+   "type": "downlight",
+   "room": "WC 1",
+   "x": 0.24,
+   "y": 0.55,
+   "circuits": "18"
+  },
+  {
+   "id": "f53",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 2",
+   "x": 0.18,
+   "y": 0.45,
+   "circuits": "20"
+  },
+  {
+   "id": "f54",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 2",
+   "x": 0.2,
+   "y": 0.45,
+   "circuits": "20"
+  },
+  {
+   "id": "f55",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 2",
+   "x": 0.18,
+   "y": 0.48,
+   "circuits": "21"
+  },
+  {
+   "id": "f56",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 2",
+   "x": 0.2,
+   "y": 0.48,
+   "circuits": "21"
+  },
+  {
+   "id": "f57",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 3",
+   "x": 0.18,
+   "y": 0.3,
+   "circuits": "22"
+  },
+  {
+   "id": "f58",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 3",
+   "x": 0.2,
+   "y": 0.3,
+   "circuits": "22"
+  },
+  {
+   "id": "f59",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 3",
+   "x": 0.22,
+   "y": 0.3,
+   "circuits": "22"
+  },
+  {
+   "id": "f60",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 3",
+   "x": 0.18,
+   "y": 0.33,
+   "circuits": "23"
+  },
+  {
+   "id": "f61",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 3",
+   "x": 0.2,
+   "y": 0.33,
+   "circuits": "23"
+  },
+  {
+   "id": "f62",
+   "page": 4,
+   "type": "downlight",
+   "room": "P.Ngủ 3",
+   "x": 0.22,
+   "y": 0.33,
+   "circuits": "23"
+  },
+  {
+   "id": "f63",
+   "page": 4,
+   "type": "downlight",
+   "room": "WC 2",
+   "x": 0.2,
+   "y": 0.15,
+   "circuits": "25"
+  },
+  {
+   "id": "f64",
+   "page": 4,
+   "type": "downlight",
+   "room": "WC 2",
+   "x": 0.22,
+   "y": 0.15,
+   "circuits": "25"
+  },
+  {
+   "id": "f65",
+   "page": 4,
+   "type": "downlight",
+   "room": "WC 2",
+   "x": 0.24,
+   "y": 0.15,
+   "circuits": "25"
+  },
+  {
+   "id": "f66",
+   "page": 4,
+   "type": "downlight",
+   "room": "WC 2",
+   "x": 0.26,
+   "y": 0.12,
+   "circuits": "26"
+  },
+  {
+   "id": "f67",
+   "page": 4,
+   "type": "downlight",
+   "room": "WC 2",
+   "x": 0.16,
+   "y": 0.12,
+   "circuits": "27"
+  },
+  {
+   "id": "f68",
+   "page": 4,
+   "type": "downlight",
+   "room": "WC 2",
+   "x": 0.18,
+   "y": 0.12,
+   "circuits": "27"
+  },
+  {
+   "id": "f69",
+   "page": 4,
+   "type": "led_strip",
+   "room": "Phòng khách + hành lang",
+   "x": 0.32,
+   "y": 0.58,
+   "circuits": "4"
+  },
+  {
+   "id": "f70",
+   "page": 4,
+   "type": "led_strip",
+   "room": "Khu bếp + ăn",
+   "x": 0.47,
+   "y": 0.28,
+   "circuits": "6"
+  },
+  {
+   "id": "f71",
+   "page": 4,
+   "type": "led_strip",
+   "room": "Phòng thờ",
+   "x": 0.57,
+   "y": 0.44,
+   "circuits": "8"
+  },
+  {
+   "id": "f72",
+   "page": 4,
+   "type": "led_strip",
+   "room": "P.Ngủ 1",
+   "x": 0.12,
+   "y": 0.7,
+   "circuits": "14"
+  },
+  {
+   "id": "f73",
+   "page": 4,
+   "type": "led_strip",
+   "room": "P.Ngủ 2",
+   "x": 0.12,
+   "y": 0.5,
+   "circuits": "19"
+  },
+  {
+   "id": "f74",
+   "page": 4,
+   "type": "led_strip",
+   "room": "P.Ngủ 3",
+   "x": 0.12,
+   "y": 0.36,
+   "circuits": "24"
+  },
+  {
+   "id": "f75",
+   "page": 4,
+   "type": "wall_light",
+   "room": "Sảnh + hiên trước",
+   "x": 0.42,
+   "y": 0.8,
+   "circuits": "2"
+  },
+  {
+   "id": "f76",
+   "page": 4,
+   "type": "wall_light",
+   "room": "Hiên hông (cửa P.Thờ)",
+   "x": 0.62,
+   "y": 0.46,
+   "circuits": "8"
+  },
+  {
+   "id": "f77",
+   "page": 4,
+   "type": "wall_light",
+   "room": "Hiên hông (cửa P.Thờ)",
+   "x": 0.58,
+   "y": 0.56,
+   "circuits": "8"
+  },
+  {
+   "id": "f78",
+   "page": 4,
+   "type": "wall_light",
+   "room": "Hiên P.Ngủ 1",
+   "x": 0.14,
+   "y": 0.84,
+   "circuits": "12"
+  },
+  {
+   "id": "f79",
+   "page": 4,
+   "type": "tube_light",
+   "room": "Cửa sau bếp",
+   "x": 0.4,
+   "y": 0.08,
+   "circuits": "10"
+  },
+  {
+   "id": "f80",
+   "page": 4,
+   "type": "exhaust_fan",
+   "room": "WC 1",
+   "x": 0.21,
+   "y": 0.52,
+   "circuits": "16"
+  },
+  {
+   "id": "f81",
+   "page": 4,
+   "type": "exhaust_fan",
+   "room": "WC 2",
+   "x": 0.24,
+   "y": 0.1,
+   "circuits": "26"
+  },
+  {
+   "id": "f82",
+   "page": 4,
+   "type": "switch",
+   "room": "Sảnh (cạnh tủ điện)",
+   "x": 0.36,
+   "y": 0.66,
+   "circuits": "1,2",
+   "twoWay": false
+  },
+  {
+   "id": "f83",
+   "page": 4,
+   "type": "switch",
+   "room": "Sảnh (cạnh tủ điện)",
+   "x": 0.365,
+   "y": 0.66,
+   "circuits": "3,4",
+   "twoWay": true
+  },
+  {
+   "id": "f84",
+   "page": 4,
+   "type": "switch",
+   "room": "Phòng ăn",
+   "x": 0.37,
+   "y": 0.4,
+   "circuits": "5,6",
+   "twoWay": false
+  },
+  {
+   "id": "f85",
+   "page": 4,
+   "type": "switch",
+   "room": "Phòng ăn",
+   "x": 0.375,
+   "y": 0.4,
+   "circuits": "3,4",
+   "twoWay": true
+  },
+  {
+   "id": "f86",
+   "page": 4,
+   "type": "switch",
+   "room": "Phòng thờ",
+   "x": 0.52,
+   "y": 0.42,
+   "circuits": "7,8,9",
+   "twoWay": false
+  },
+  {
+   "id": "f87",
+   "page": 4,
+   "type": "switch",
+   "room": "Cửa sau bếp",
+   "x": 0.42,
+   "y": 0.09,
+   "circuits": "10",
+   "twoWay": false
+  },
+  {
+   "id": "f88",
+   "page": 4,
+   "type": "switch",
+   "room": "Hiên P.Ngủ 1",
+   "x": 0.26,
+   "y": 0.76,
+   "circuits": "11,12",
+   "twoWay": false
+  },
+  {
+   "id": "f89",
+   "page": 4,
+   "type": "switch",
+   "room": "P.Ngủ 1 (cửa ra vào)",
+   "x": 0.25,
+   "y": 0.6,
+   "circuits": "13,14,15",
+   "twoWay": true
+  },
+  {
+   "id": "f90",
+   "page": 4,
+   "type": "switch",
+   "room": "P.Ngủ 1 (đầu giường)",
+   "x": 0.13,
+   "y": 0.74,
+   "circuits": "13,14,15",
+   "twoWay": true
+  },
+  {
+   "id": "f91",
+   "page": 4,
+   "type": "switch",
+   "room": "WC 1",
+   "x": 0.26,
+   "y": 0.53,
+   "circuits": "16,17,18",
+   "twoWay": false
+  },
+  {
+   "id": "f92",
+   "page": 4,
+   "type": "switch",
+   "room": "P.Ngủ 2 (cửa ra vào)",
+   "x": 0.26,
+   "y": 0.47,
+   "circuits": "19,20,21",
+   "twoWay": false
+  },
+  {
+   "id": "f93",
+   "page": 4,
+   "type": "switch",
+   "room": "P.Ngủ 3 (cửa ra vào)",
+   "x": 0.26,
+   "y": 0.34,
+   "circuits": "22,23,24",
+   "twoWay": false
+  },
+  {
+   "id": "f94",
+   "page": 4,
+   "type": "switch",
+   "room": "WC 2",
+   "x": 0.27,
+   "y": 0.17,
+   "circuits": "25,26,27",
+   "twoWay": false
+  },
+  {
+   "id": "f95",
+   "page": 5,
+   "type": "camera_outdoor",
+   "room": "Sảnh",
+   "x": 0.55,
+   "y": 0.75
+  },
+  {
+   "id": "f96",
+   "page": 5,
+   "type": "camera_outdoor",
+   "room": "Hiên hông",
+   "x": 0.57,
+   "y": 0.55
+  },
+  {
+   "id": "f97",
+   "page": 5,
+   "type": "camera_outdoor",
+   "room": "Sau bếp",
+   "x": 0.6,
+   "y": 0.1
+  },
+  {
+   "id": "f98",
+   "page": 5,
+   "type": "camera_indoor",
+   "room": "Phòng khách",
+   "x": 0.45,
+   "y": 0.48
+  },
+  {
+   "id": "f99",
+   "page": 5,
+   "type": "camera_indoor",
+   "room": "Phòng ăn",
+   "x": 0.4,
+   "y": 0.3
+  },
+  {
+   "id": "f100",
+   "page": 5,
+   "type": "data_outlet",
+   "room": "P.Ngủ 3",
+   "x": 0.25,
+   "y": 0.3
+  },
+  {
+   "id": "f101",
+   "page": 5,
+   "type": "data_outlet",
+   "room": "P.Ngủ 3",
+   "x": 0.26,
+   "y": 0.3
+  },
+  {
+   "id": "f102",
+   "page": 5,
+   "type": "data_outlet",
+   "room": "Phòng khách",
+   "x": 0.38,
+   "y": 0.7
+  },
+  {
+   "id": "f103",
+   "page": 5,
+   "type": "wifi_ap",
+   "room": "Phòng khách",
+   "x": 0.55,
+   "y": 0.52,
+   "note": "Modem + switch PoE 10 port"
+  },
+  {
+   "id": "f104",
+   "page": 2,
+   "type": "junction_box",
+   "room": "P.Ngủ 1",
+   "x": 0.3,
+   "y": 0.78,
+   "note": "nguồn rèm điện"
+  },
+  {
+   "id": "f105",
+   "page": 2,
+   "type": "junction_box",
+   "room": "Phòng khách",
+   "x": 0.42,
+   "y": 0.76,
+   "note": "nguồn rèm điện"
+  },
+  {
+   "id": "f106",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.62,
+   "y": 0.1,
+   "note": "ổ cắm camera"
+  },
+  {
+   "id": "f107",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.4,
+   "y": 0.3,
+   "note": "ổ cắm camera"
+  },
+  {
+   "id": "f108",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.42,
+   "y": 0.52,
+   "note": "ổ cắm camera"
+  },
+  {
+   "id": "f109",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.48,
+   "y": 0.7,
+   "note": "ổ cắm camera"
+  },
+  {
+   "id": "f110",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.5,
+   "y": 0.8,
+   "note": "ổ cắm camera"
+  },
+  {
+   "id": "f111",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.15,
+   "y": 0.12
+  },
+  {
+   "id": "f112",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.2,
+   "y": 0.12
+  },
+  {
+   "id": "f113",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.25,
+   "y": 0.12
+  },
+  {
+   "id": "f114",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.3,
+   "y": 0.12
+  },
+  {
+   "id": "f115",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.35,
+   "y": 0.12
+  },
+  {
+   "id": "f116",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.4,
+   "y": 0.12
+  },
+  {
+   "id": "f117",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.45,
+   "y": 0.12
+  },
+  {
+   "id": "f118",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.5,
+   "y": 0.12
+  },
+  {
+   "id": "f119",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.55,
+   "y": 0.12
+  },
+  {
+   "id": "f120",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.15,
+   "y": 0.27
+  },
+  {
+   "id": "f121",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.2,
+   "y": 0.27
+  },
+  {
+   "id": "f122",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.25,
+   "y": 0.27
+  },
+  {
+   "id": "f123",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.3,
+   "y": 0.27
+  },
+  {
+   "id": "f124",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.35,
+   "y": 0.27
+  },
+  {
+   "id": "f125",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.4,
+   "y": 0.27
+  },
+  {
+   "id": "f126",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.45,
+   "y": 0.27
+  },
+  {
+   "id": "f127",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.5,
+   "y": 0.27
+  },
+  {
+   "id": "f128",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.55,
+   "y": 0.27
+  },
+  {
+   "id": "f129",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.15,
+   "y": 0.42
+  },
+  {
+   "id": "f130",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.2,
+   "y": 0.42
+  },
+  {
+   "id": "f131",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.25,
+   "y": 0.42
+  },
+  {
+   "id": "f132",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.3,
+   "y": 0.42
+  },
+  {
+   "id": "f133",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.35,
+   "y": 0.42
+  },
+  {
+   "id": "f134",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.4,
+   "y": 0.42
+  },
+  {
+   "id": "f135",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.45,
+   "y": 0.42
+  },
+  {
+   "id": "f136",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.5,
+   "y": 0.42
+  },
+  {
+   "id": "f137",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.55,
+   "y": 0.42
+  },
+  {
+   "id": "f138",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.15,
+   "y": 0.57
+  },
+  {
+   "id": "f139",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.2,
+   "y": 0.57
+  },
+  {
+   "id": "f140",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.25,
+   "y": 0.57
+  },
+  {
+   "id": "f141",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.3,
+   "y": 0.57
+  },
+  {
+   "id": "f142",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.35,
+   "y": 0.57
+  },
+  {
+   "id": "f143",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.4,
+   "y": 0.57
+  },
+  {
+   "id": "f144",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.45,
+   "y": 0.57
+  },
+  {
+   "id": "f145",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.5,
+   "y": 0.57
+  },
+  {
+   "id": "f146",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.55,
+   "y": 0.57
+  },
+  {
+   "id": "f147",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.15,
+   "y": 0.72
+  },
+  {
+   "id": "f148",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.2,
+   "y": 0.72
+  },
+  {
+   "id": "f149",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.25,
+   "y": 0.72
+  },
+  {
+   "id": "f150",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.3,
+   "y": 0.72
+  },
+  {
+   "id": "f151",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.35,
+   "y": 0.72
+  },
+  {
+   "id": "f152",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.4,
+   "y": 0.72
+  },
+  {
+   "id": "f153",
+   "page": 2,
+   "type": "socket",
+   "room": "—",
+   "x": 0.45,
+   "y": 0.72
+  },
+  {
+   "id": "f154",
+   "page": 10,
+   "type": "ac_indoor",
+   "room": "P.Ngủ 1",
+   "x": 0.15,
+   "y": 0.7
+  },
+  {
+   "id": "f155",
+   "page": 10,
+   "type": "ac_indoor",
+   "room": "P.Ngủ 2",
+   "x": 0.15,
+   "y": 0.45
+  },
+  {
+   "id": "f156",
+   "page": 10,
+   "type": "ac_indoor",
+   "room": "P.Ngủ 3",
+   "x": 0.15,
+   "y": 0.3
+  }
+ ],
+ "estimates": [
+  {
+   "key": "led_strip:Phòng khách",
+   "meters": 15
+  },
+  {
+   "key": "led_strip:Khu bếp + ăn",
+   "meters": 17
+  },
+  {
+   "key": "led_strip:Phòng thờ",
+   "meters": 8
+  },
+  {
+   "key": "led_strip:P.Ngủ 1",
+   "meters": 14
+  },
+  {
+   "key": "led_strip:P.Ngủ 2",
+   "meters": 11
+  },
+  {
+   "key": "led_strip:P.Ngủ 3",
+   "meters": 12
+  },
+  {
+   "key": "rail:P.Ngủ 1",
+   "meters": 4
+  },
+  {
+   "key": "rail:Phòng khách",
+   "meters": 4
+  }
+ ],
+ "acUnits": 3,
+ "panelAcCircuits": 3
+}

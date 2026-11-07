@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "STC Takeoff (import from Claude chat / export from app)",
+  "type": "object",
+  "required": ["version", "project", "detections"],
+  "properties": {
+    "version": {"const": 1},
+    "project": {"type": "object", "required": ["customer"], "properties": {
+      "customer": {"type": "string"}, "address": {"type": "string"}, "date": {"type": "string"}, "sourceName": {"type": "string"}}},
+    "pages": {"type": "array", "items": {"type": "object", "properties": {
+      "index": {"type": "integer"}, "discipline": {"type": "string"}, "floor": {"type": "string"}}}},
+    "detections": {"type": "array", "items": {"type": "object", "required": ["type"], "properties": {
+      "id": {"type": "string"}, "page": {"type": "integer"}, "type": {"type": "string"},
+      "x": {"type": "number"}, "y": {"type": "number"}, "room": {"type": "string"},
+      "circuits": {"type": "string"}, "twoWay": {"type": "boolean"}, "note": {"type": "string"},
+      "qty": {"type": "integer", "minimum": 1, "description": "only for imports without positions"}}}},
+    "estimates": {"type": "array", "items": {"type": "object", "properties": {
+      "key": {"type": "string"}, "meters": {"type": "number"}}}},
+    "acUnits": {"type": "integer"},
+    "panelCircuits": {"type": "array", "items": {"type": "object"}}
+  }
+}

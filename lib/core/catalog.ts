@@ -1,0 +1,43 @@
+import type { CatalogItem, Settings } from "./types.ts";
+
+const SW = "Công suất đầu ra 300W/kênh, mặt kính cường lực chống trầy, nút lõm viền nhôm, viền LED định vị 10%, chuẩn kết nối Bluetooth Mesh.";
+const A = "/quote-assets/";
+
+export const SECTIONS = {
+  lighting_ctrl: "I. Giải pháp Điều khiển Chiếu sáng Thông minh",
+  gate: "II. Giải pháp điều khiển cửa cổng",
+  curtain: "III. Giải pháp rèm vải tự động",
+  camera: "IV. Giải pháp camera quan sát",
+  light: "Giải pháp chiếu sáng",
+} as const;
+
+export const DEFAULT_CATALOG: CatalogItem[] = [
+  { code: "sw1", name: "Công tắc cảm ứng 1 nút", desc: SW, img: A + "i-019.png", unit: "Bộ", price: 2079000, discount: 0.2, section: "lighting_ctrl" },
+  { code: "sw2", name: "Công tắc cảm ứng 2 nút", desc: SW, img: A + "i-020.png", unit: "Bộ", price: 2079000, discount: 0.2, section: "lighting_ctrl" },
+  { code: "sw3", name: "Công tắc cảm ứng 3 nút", desc: SW, img: A + "i-021.png", unit: "Bộ", price: 2079000, discount: 0.2, section: "lighting_ctrl" },
+  { code: "sw4", name: "Công tắc cảm ứng 4 nút", desc: SW, img: A + "i-022.png", unit: "Bộ", price: 2079000, discount: 0.2, section: "lighting_ctrl" },
+  { code: "hub", name: "Bộ điều khiển trung tâm T950", desc: "Trung tâm điều khiển chuẩn Bluetooth Mesh/ZigBee, điều khiển giọng nói tiếng Việt, xử lý kịch bản tự động hóa nội mạng tốc độ cao.", img: A + "i-023.png", unit: "Bộ", price: 2409000, discount: 0.2, section: "lighting_ctrl" },
+  { code: "zigbee", name: "Thiết bị mở rộng sóng ZigBee 3.0 (phiên bản giới hạn)", desc: "Đi kèm bộ trung tâm T950, mở rộng vùng phủ sóng ZigBee 3.0 cho toàn bộ hệ thống.", img: A + "zigbee.png", unit: "Bộ", price: 429000, discount: 0.1, section: "lighting_ctrl" },
+  { code: "ir", name: "Bộ điều khiển điều hòa thông minh (IR) IEWG011", desc: "Điều khiển điều hòa/TV qua sóng hồng ngoại, hẹn giờ, kịch bản tự động tắt khi không có người, chuẩn Bluetooth Mesh, điều khiển giọng nói.", img: A + "ir.png", unit: "Bộ", price: 899000, discount: 0.2, section: "lighting_ctrl" },
+  { code: "gate_sw", name: "Công tắc điều khiển động cơ cổng", desc: "Điện áp 220V-50Hz, khiển Đóng/Mở/Dừng, nút chạm lõm viền LED 10%, kính cường lực chống xước, chuẩn Bluetooth Mesh.", img: A + "i-024.png", unit: "Bộ", price: 1639000, discount: 0.2, section: "gate" },
+  { code: "curtain_sw", name: "Công tắc điều khiển động cơ rèm", desc: "Điện áp 220V-50Hz, khiển Đóng/Mở/Dừng độc lập rèm voan và rèm vải, mặt kính cường lực nút lõm viền nhôm, chuẩn Bluetooth Mesh.", img: A + "i-024.png", unit: "Bộ", price: 1639000, discount: 0.2, section: "curtain" },
+  { code: "curtain_motor", name: "Động cơ và phụ kiện rèm cửa kéo ngang", desc: "Điện áp 220V-50Hz, mô-men xoắn 1.5N.m, tốc độ 160 vòng/phút, công suất 80W, độ ồn <30dB(A), chuẩn IP41.", img: A + "i-026.png", unit: "Bộ", price: 3774000, discount: 0.3, section: "curtain" },
+  { code: "rail", name: "Thanh ray rèm kéo ngang", desc: "Thanh ray hợp kim nhôm sơn tĩnh điện mở 1 bên hoặc 2 bên, dây curoa lõi thép bền bỉ, con chạy định hình 7cm.", img: A + "i-027.png", unit: "mét", price: 550000, discount: 0.2, section: "curtain" },
+  { code: "cam_in", name: "FPT Camera SE 3 (Indoor 360°)", desc: "Độ phân giải 2K 3MP (2304x1296px), góc xoay 355°, đàm thoại 2 chiều, AI phân biệt người và vật thể, cảnh báo loa hú & đèn nháy.", img: A + "i-028.png", unit: "Bộ", price: 1100000, discount: 0.2, section: "camera" },
+  { code: "cam_out", name: "FPT Camera SE 2S (Outdoor Cảnh Báo)", desc: "Đèn rọi Floodlight 2 chế độ ghi hình đêm có màu, hồng ngoại 30m, kháng nước IP67, cảnh báo chủ động bằng Loa hú & Đèn Flash.", img: A + "i-029.png", unit: "Bộ", price: 1300000, discount: 0.2, section: "camera" },
+  // Lighting (discount applied globally via settings.lightDiscount)
+  { code: "athena", name: "Đèn LED Âm Trần Spotlight Athena thông minh", desc: "", brand: "FPT", spec: "– Nguồn cấp: 220V/50Hz<br>– Công suất: 12W<br>– Quang thông: 820-1030 lm<br>– Nhiệt độ màu: 2700K – 6000K<br>– CRI: 90<br>– Góc chiếu: 50°<br>– Kích thước: 108x65mm<br>– Khoét trần: 95mm<br>– Chuẩn kết nối: Bluetooth Mesh", img: A + "i-040.png", unit: "BỘ", price: 869000, discount: 0, section: "light" },
+  { code: "spotlight_ab", name: "Đèn Spotlight ( Thường)", desc: "", brand: "AB", spec: "9W, âm trần<br>Chip: CREE<br>Ánh sáng: 3000K/ 4000K<br>CRI 95<br>Góc chiếu 45°<br>Kích thước Φ95*H75mm<br>Lỗ khoét Φ80mm", img: A + "i-040.png", unit: "Bộ", price: 588000, discount: 0, section: "light" },
+  { code: "downlight_ab", name: "Đèn LED Downlight", desc: "", brand: "AB", spec: "12W, âm trần<br>Chip: SANAN<br>Ánh sáng: 4000K<br>CRI 95-97<br>Góc chiếu 120°<br>Thân nhôm trắng /viền trắng<br>Kích thước D120*H29mm<br>Lỗ khoét Φ(90-100)mm", img: A + "i-040.png", unit: "BỘ", price: 248000, discount: 0, section: "light" },
+  { code: "tube_ab", name: "ĐÈN LED ỐNG BƠ 12W, 4000K", desc: "", brand: "AB", spec: "12W, gắn nổi IP65<br>Chip: CREE<br>CRI 92-95<br>Góc chiếu: 38°<br>Kích thước Ø75*100mm<br>Điện áp 220V", img: A + "i-040.png", unit: "Bộ", price: 968000, discount: 0, section: "light" },
+];
+
+export const DEFAULT_SETTINGS: Settings = {
+  installRate: 0.15,
+  lightDiscount: 0.35,
+  lightInstall: 0,
+  defaultDownlight: "downlight_ab",
+  railPerCurtainM: 4,
+  mergeAdjacentSwitches: true,
+  areaPerHubM2: 200,
+};
