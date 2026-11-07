@@ -25,7 +25,7 @@ export function crossCheck(p: Project): CrossCheck[] {
     const c = k.split("#")[1];
     out.push({ code: "C1", severity: "warn", message: `Line ${c}: có ${ds.length} thiết bị chiếu sáng nhưng không tìm thấy công tắc điều khiển.`, detectionIds: ds.map((d) => d.id) });
   }
-  const noCircuitLoads = loads.filter((d) => !parseCircuits(d.circuits).length);
+  const noCircuitLoads = loads.filter((d) => !d.proposed && !parseCircuits(d.circuits).length);
   if (sw.length && noCircuitLoads.length) out.push({ code: "C1", severity: "info", message: `${noCircuitLoads.length} đèn chưa đọc được số mạch – kiểm tra lại trên bản vẽ.`, detectionIds: noCircuitLoads.map((d) => d.id) });
 
   // C2 – switch without circuits

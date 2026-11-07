@@ -30,7 +30,7 @@ export function importTakeoff(t: TakeoffJSON, today: string): Project {
     const n = Math.max(1, d.qty ?? 1);
     for (let i = 0; i < n; i++) dets.push({
       id: d.id && n === 1 ? d.id : newId("i"), page: d.page ?? 0, type,
-      x: d.x ?? -1, y: d.y ?? -1, room: d.room, circuits: d.circuits, twoWay: d.twoWay, note: d.note,
+      x: d.x ?? -1, y: d.y ?? -1, room: d.room, circuits: d.circuits, twoWay: d.twoWay, note: d.note, proposed: d.proposed,
       floor: d.floor, pass: "import", status: "ok",
     });
   }
@@ -48,7 +48,7 @@ export function exportTakeoff(p: Project): TakeoffJSON {
     version: 1,
     project: { customer: p.customer, address: p.address, date: p.date, sourceName: p.sourceName },
     pages: p.pages.map((x) => ({ index: x.index, discipline: x.discipline, floor: x.floor, title: x.title })),
-    detections: p.detections.filter((d) => d.status !== "removed").map(({ id, page, type, x, y, room, circuits, twoWay, note, floor }) => ({ id, page, type, x, y, room, circuits, twoWay, note, floor })),
+    detections: p.detections.filter((d) => d.status !== "removed").map(({ id, page, type, x, y, room, circuits, twoWay, note, floor, proposed }) => ({ id, page, type, x, y, room, circuits, twoWay, note, floor, proposed })),
     estimates: p.estimates.map(({ key, meters }) => ({ key, meters })),
     acUnits: p.acUnits, panelAcCircuits: p.panelAcCircuits,
   };

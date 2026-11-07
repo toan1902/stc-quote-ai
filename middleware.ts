@@ -9,4 +9,4 @@ export async function middleware(req: NextRequest) {
   return NextResponse.redirect(url);
 }
 
-export const config = { matcher: ["/((?!login|api/login|api/health|_next|quote-assets|pdf.worker|favicon).*)"] };
+export const config = { matcher: ["/((?!login|api/login|api/health|q/|_next|quote-assets|pdf.worker|favicon).*)"] };

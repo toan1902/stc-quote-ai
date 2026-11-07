@@ -98,7 +98,7 @@ export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settin
   sh.getCell(T.niem, 8).value = { formula: totals[0][2] || "0" };
   sh.getCell(T.sau, 8).value = { formula: totals[2][2] || "0" };
   sh.getCell(T.giam, 8).value = { formula: `H${T.sau}-H${T.niem}` };
-  sh.getCell(T.ld, 8).value = { formula: `ROUND(H${T.niem}*H${rate},0)` };
+  sh.getCell(T.ld, 8).value = { formula: q.freeList ? `ROUND((H${T.niem}-${q.freeList})*H${rate},0)` : `ROUND(H${T.niem}*H${rate},0)` };
   sh.getCell(T.tong, 8).value = { formula: `H${T.sau}+H${T.ld}` };
   Object.values(T).forEach((x) => { sh.getCell(x, 8).numFmt = NUM; sh.getCell(x, 8).font = font({ bold: true }); });
   sh.getCell(T.tong, 8).font = font({ bold: true, size: 11, color: "FFB91C1C" });

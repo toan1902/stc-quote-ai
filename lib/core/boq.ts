@@ -13,7 +13,9 @@ export interface BOQResult {
   curtains: { room: string; floor: string; meters: number; estimated: boolean; ids: string[] }[];
   acRooms: string[];
   acFloors: string[];
-  lightsByRoom: { room: string; floor: string; qty: number; type: DeviceType }[];
+  lightsByRoom: { room: string; floor: string; qty: number; type: DeviceType; proposed?: boolean }[];
+  /** STC-proposed extra fixtures (Detection.proposed), grouped by page for the proposal drawing */
+  proposals: { page: number; floor: string; ids: string[]; byRoom: { room: string; qty: number }[] }[];
   floors: string[];
   hubs: number;
   ledStripM: number;
@@ -84,8 +86,9 @@ export function buildBOQ(p: Project, s: Settings): BOQResult {
 
   // ---- Lighting fixtures (authoritative: lighting plan)
   const lightTypes = Object.keys(LIGHT_SCOPE) as DeviceType[];
-  const lights = from(p, dets, lightTypes, "lighting");
-  const lightsByRoomMap = new Map<string, { room: string; floor: string; qty: number; type: DeviceType }>();
+  const proposed = dets.filter((d) => d.proposed && LIGHT_SCOPE[d.type] === "lighting");
+  const lights = from(p, dets.filter((d) => !d.proposed), lightTypes, "lighting");
+  const lightsByRoomMap = new Map<string, { room: string; floor: string; qty: number; type: DeviceType; proposed?: boolean }>();
   for (const t of lightTypes) {
     const ds = lights.filter((d) => d.type === t);
     if (!ds.length) continue;
@@ -97,6 +100,19 @@ export function buildBOQ(p: Project, s: Settings): BOQResult {
       cur.qty++; lightsByRoomMap.set(k, cur);
     }
   }
+  if (proposed.length) {
+    lines.push(line("spotlight_prop", "Spotlight đề xuất thêm", "Bộ", proposed, "lighting"));
+    for (const d of proposed) {
+      const k = `${floorOf(p, d)}|${d.room || "?"}|prop`;
+      const cur = lightsByRoomMap.get(k) ?? { room: d.room || "?", floor: floorOf(p, d), qty: 0, type: "spotlight" as DeviceType, proposed: true };
+      cur.qty++; lightsByRoomMap.set(k, cur);
+    }
+  }
+  const proposals = [...new Set(proposed.map((d) => d.page))].map((pg) => {
+    const ds = proposed.filter((d) => d.page === pg);
+    const rooms = new Map<string, number>(); ds.forEach((d) => rooms.set(d.room || "?", (rooms.get(d.room || "?") ?? 0) + 1));
+    return { page: pg, floor: floorOf(p, ds[0]), ids: ds.map((d) => d.id), byRoom: [...rooms].map(([room, qty]) => ({ room, qty })) };
+  });
   const ledEst = p.estimates.filter((e) => e.key.startsWith("led_strip"));
   const ledStripM = ledEst.reduce((a, e) => a + e.meters, 0);
   const ledDets = lights.filter((d) => d.type === "led_strip");
@@ -137,7 +153,7 @@ export function buildBOQ(p: Project, s: Settings): BOQResult {
   }
   const excluded = lines.filter((l) => l.scope === "excluded" && l.qty > 0).map((l) => ({ name: l.name, qty: l.qty, unit: l.unit }));
 
-  return { lines, switches, cameras, curtains, acRooms, acFloors, lightsByRoom: [...lightsByRoomMap.values()], floors, hubs, ledStripM, excluded };
+  return { lines, switches, cameras, curtains, acRooms, acFloors, lightsByRoom: [...lightsByRoomMap.values()], proposals, floors, hubs, ledStripM, excluded };
 }
 
 export const qtyOf = (r: BOQResult, code: string) => r.lines.find((l) => l.code === code)?.qty ?? 0;

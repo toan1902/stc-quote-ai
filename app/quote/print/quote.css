@@ -114,3 +114,26 @@
 .qroot .lt td{padding:2px 6px}
 .qroot .noprint{position:fixed;top:10px;right:10px;z-index:9;display:flex;gap:8px}
 .qroot .noprint button{font:14px sans-serif;padding:8px 14px;border-radius:8px;border:0;background:#1d3a89;color:#fff;cursor:pointer}.qroot .page+.page{break-before:page}
+
+/* proposal drawing page */
+.qroot .propimg{border:1px solid #cbd5e1;margin:6px 0;text-align:center;background:#fff}
+.qroot .propimg img{max-width:100%;max-height:150mm;object-fit:contain}
+.qroot .proplg{font-size:10px;margin:2px 0 6px;display:flex;align-items:center;gap:4px}
+.qroot .pdot{display:inline-block;width:12px;height:12px;border-radius:50%;border:3px solid #ea580c;background:#fff}
+.qroot tr.prop td{background:#fff7ed}
+/* online banner */
+.qbanner{max-width:210mm;margin:12px auto;padding:10px 14px;border-radius:8px;font:14px 'Noto Sans',sans-serif;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.qbanner.live{background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a}
+.qbanner.locked{background:#f0fdf4;border:1px solid #86efac;color:#14532d}
+.qbanner a,.qbanner button{margin-left:auto;padding:6px 12px;border-radius:6px;border:1px solid currentColor;background:#fff;color:inherit;text-decoration:none;cursor:pointer;font:inherit}
+@media print{.qbanner{display:none}}
+.qroot .vn{display:inline-block;margin-left:5px;padding:0 5px;border-radius:3px;background:#da251d;color:#ffde00;font-size:7.5px;font-weight:700;vertical-align:middle;white-space:nowrap}
+.qroot .vnflag{display:inline-block;padding:6px 4px;border:1px solid #cbd5e1;border-radius:4px;font-weight:700;color:#1e3a8a;font-size:10px}
+.qroot .ds.wr{color:#b91c1c;font-weight:700}
+.qroot .bigimg{display:block;max-width:62%;max-height:30mm;margin:3px 0;border-radius:4px}
+.qroot .gimg{display:block;width:85%;max-height:70mm;object-fit:contain;margin:6px 0 2px;border-radius:6px}
+.qroot table.gt th:nth-child(3){width:auto}
+.qroot table.gt th:nth-child(2){width:50%}
+.qroot table.gt th:nth-child(1){width:4%}
+.qroot table.gt .ds{font-size:9.5px;line-height:1.35}
+.qroot table.gt .it{font-size:11px}

@@ -1,0 +1,36 @@
+.ctr{background:#e5e7eb;min-height:100vh;padding:12px 0;font-family:"Times New Roman",Times,serif;color:#111}
+.ctr .bar{max-width:210mm;margin:0 auto 10px;display:flex;gap:10px;justify-content:space-between;font-family:'Noto Sans',sans-serif}
+.ctr .bar a,.ctr .bar button{padding:6px 12px;border:1px solid #1e3a8a;border-radius:6px;background:#fff;color:#1e3a8a;text-decoration:none;cursor:pointer;font:inherit}
+.ctr .a4{width:210mm;min-height:297mm;margin:0 auto 12px;background:#fff;padding:18mm 18mm 16mm 22mm;box-sizing:border-box;font-size:13px;line-height:1.5}
+.ctr .qh{text-align:center;font-size:13px}
+.ctr h1{text-align:center;font-size:17px;margin:14px 0 4px}
+.ctr h2{text-align:center;font-size:15px;margin:0 0 4px}
+.ctr h3{font-size:13.5px;margin:12px 0 4px}
+.ctr .no{text-align:center;font-style:italic;margin-bottom:8px}
+.ctr p{margin:4px 0;text-align:justify}
+.ctr ul{margin:4px 0;padding-left:20px}
+.ctr ul.cc{list-style:none;padding-left:0;font-style:italic}
+.ctr ul.cc li:before{content:"– "}
+.ctr table.kv{border-collapse:collapse;margin:2px 0 6px}
+.ctr table.kv td{padding:1px 8px 1px 0;vertical-align:top}
+.ctr table.kv td:first-child{width:130px;color:#333}
+.ctr table.t{width:100%;border-collapse:collapse;margin:6px 0}
+.ctr table.t th,.ctr table.t td{border:1px solid #444;padding:3px 6px}
+.ctr table.t th{background:#f1f5f9;color:#111;font-weight:700}
+.ctr table.t.sm{font-size:12px}
+.ctr .c{text-align:center}.ctr .r{text-align:right;white-space:nowrap}
+.ctr tr.b td{font-weight:700}.ctr tr.red td{color:#b91c1c}
+.ctr tr.sec td{background:#eef2ff;font-weight:700}
+.ctr .sm{font-size:12px}
+.ctr .vn{display:inline-block;margin-left:5px;padding:0 4px;border-radius:3px;background:#da251d;color:#ffde00;font:700 9px 'Noto Sans',sans-serif;vertical-align:middle}
+.ctr .sg{display:flex;justify-content:space-around;text-align:center;margin-top:22px;page-break-inside:avoid}
+.ctr .sg div{display:flex;flex-direction:column;min-width:40%}
+.ctr .sg i{font-size:12px}
+.ctr .sg .nm{margin-top:70px;font-weight:700}
+@page{size:A4;margin:0}
+@media print{
+  .ctr{background:#fff;padding:0}
+  .ctr .noprint{display:none}
+  .ctr .a4{margin:0;min-height:auto;page-break-after:always}
+  .ctr .a4:last-child{page-break-after:auto}
+}

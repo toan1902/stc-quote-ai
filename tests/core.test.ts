@@ -149,3 +149,44 @@ test("classify by PDF text: keep electrical sheets, skip water/structure", async
   assert.equal(classifyByText(""), null);
   assert.equal(floorOf("MẶT BẰNG CHIẾU SÁNG TẦNG 2"), "Tầng 2");
 });
+
+test("proposal: proposed spotlights are a separate priced line, excluded when unticked, no circuit warning", () => {
+  const p = load();
+  const pg = p.pages.find((x) => x.discipline === "lighting")!.index;
+  for (let i = 0; i < 12; i++) p.detections.push({ id: `s${i}`, page: pg, type: "spotlight", x: 0.3 + i * 0.01, y: 0.6, room: i < 3 ? "P.Ngủ 1" : "Phòng khách", proposed: true, pass: "manual", status: "ok" });
+  const boq = buildBOQ(p, DEFAULT_SETTINGS);
+  assert.equal(qtyOf(boq, "spotlight_prop"), 12);
+  assert.equal(qtyOf(boq, "downlight"), qtyOf(buildBOQ(load(), DEFAULT_SETTINGS), "downlight"), "base downlights unchanged");
+  assert.equal(boq.proposals.length, 1);
+  assert.deepEqual(boq.proposals[0].byRoom.find((r) => r.room === "P.Ngủ 1")?.qty, 3);
+  const base = computeQuote(buildBOQ(load(), DEFAULT_SETTINGS), DEFAULT_CATALOG, DEFAULT_SETTINGS);
+  const withP = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS);
+  const line = withP.lightLines.find((l) => l.proposed)!;
+  assert.equal(line.qty, 12); assert.equal(line.price, 869000);
+  assert.equal(withP.lTotal - base.lTotal, 12 * 869000 - Math.round(withP.lNiem * 0.35) + Math.round(base.lNiem * 0.35));
+  const off = computeQuote(boq, DEFAULT_CATALOG, { ...DEFAULT_SETTINGS, includeProposal: false });
+  assert.equal(off.grandTotal, base.grandTotal);
+  assert.ok(!crossCheck(p).some((c) => c.message.includes("chưa đọc được số mạch") && c.detectionIds.some((id) => id.startsWith("s"))));
+});
+
+test("gate AB: only quoted once a price is set; adds 1 gate switch per gate", () => {
+  const boq = buildBOQ(load(), DEFAULT_SETTINGS);
+  const none = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 });
+  assert.ok(!computeQuote(boq, DEFAULT_CATALOG.map((c) => (c.code === "gate_ab" ? { ...c, price: 0 } : c)), DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 }).sections.flatMap((s) => s.lines).some((l) => l.code === "gate_ab"), "price 0 → not quoted"); void none;
+  const cat = DEFAULT_CATALOG;
+  const q = computeQuote(boq, cat, DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 });
+  const gl = q.sections.find((s) => s.key === "gate")!;
+  assert.deepEqual(gl.lines.map((l) => [l.code, l.qty]), [["gate_ab", 1], ["gate_sw", 1]]);
+  assert.ok(gl.lines[0].vn);
+});
+
+test("AB Gate: 38.390.000 list → 30.000.000 sale, install free (15% promo shown), total +30.000.000 + gate switch", () => {
+  const boq = buildBOQ(load(), DEFAULT_SETTINGS);
+  const base = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS);
+  const q = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 });
+  const g = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_ab")!;
+  assert.equal(g.price, 38390000); assert.equal(g.after, 30000000);
+  assert.equal(q.kmLapDat, 5758500);
+  const sw = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_sw")!;
+  assert.equal(q.shTotal - base.shTotal, 30000000 + sw.after + Math.round(sw.price * 0.15));
+});

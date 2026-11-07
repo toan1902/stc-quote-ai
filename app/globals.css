@@ -37,3 +37,12 @@ table.t td{border-bottom:1px solid var(--line);padding:6px 7px;vertical-align:to
 .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:5px;background:#eef2f7;color:#334155}
 .tag.est{background:#fff7ed;color:#c2410c}
 .kpi{display:flex;justify-content:space-between;font-size:14px;padding:4px 0}.kpi.big{font-size:20px;color:var(--red);font-weight:800}
+.mk.prop{border-width:3px;border-style:solid;background:rgba(234,88,12,.25);box-shadow:0 0 0 2px #fff}
+.chk{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer}
+.chk input{margin-top:4px;width:18px;height:18px}
+.vnTag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:3px;background:#da251d;color:#ffde00;font-size:10px;font-weight:700;vertical-align:middle}
+.linkrow{display:flex;gap:6px;align-items:center}
+.linkrow input{flex:1;font-size:13px}
+a.btn{display:inline-block;padding:7px 12px;border:1px solid #cbd5e1;border-radius:8px;text-decoration:none;color:inherit;background:#fff}
+a.btn.primary{background:var(--navy,#1d3a8a);color:#fff;border-color:transparent}
+.okbox{margin-top:10px;padding:10px;border:1px solid #86efac;background:#f0fdf4;border-radius:8px}

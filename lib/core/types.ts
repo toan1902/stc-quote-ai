@@ -44,6 +44,7 @@ export interface Detection {
   circuits?: string;                      // raw, e.g. "13,14,15"
   twoWay?: boolean;
   note?: string;
+  proposed?: boolean;                     // STC đề xuất thêm (không có trên bản vẽ gốc)
   pass: 1 | 2 | "manual" | "import";
   status: "ok" | "disputed" | "removed";
   confidence?: number;
@@ -73,6 +74,10 @@ export interface CrossCheck {
 export interface CatalogItem {
   code: string; name: string; desc: string; img: string; unit: string;
   price: number; discount: number; section: string; brand?: string; spec?: string;
+  vn?: boolean;                 // thương hiệu Việt Nam (ưu tiên)
+  salePrice?: number;           // giá bán chốt sẵn (thay cho % giảm)
+  freeInstall?: boolean;        // miễn phí lắp đặt khi chọn hệ sinh thái FPT Smart Home
+  kit?: string; warn?: string; bigImg?: boolean;
 }
 
 export interface Settings {
@@ -83,6 +88,8 @@ export interface Settings {
   railPerCurtainM: number;      // default rail metres per curtain point
   mergeAdjacentSwitches: boolean;
   areaPerHubM2: number;
+  proposalSpot: "athena" | "spotlight_ab";  // loại đèn cho spotlight đề xuất
+  includeProposal: boolean;                  // đưa đề xuất (giá + trang bản vẽ) vào báo giá
 }
 
 export interface Project {
@@ -100,4 +107,6 @@ export interface Project {
   edits: EditLog[];
   floors?: number;
   areaM2?: number;
+  shareId?: string;            // link báo giá online
+  extras?: { gate_ab?: number };  // hạng mục ngoài bản vẽ (cổng tự động…)
 }

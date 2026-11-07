@@ -24,7 +24,7 @@ export default function ReviewCanvas({ doc, project, highlight, onEdit }: Props)
   const [img, setImg] = useState<Record<number, string>>({});
   const [zoom, setZoom] = useState(1);
   const [sel, setSel] = useState<string | null>(null);
-  const [addType, setAddType] = useState<DeviceType>("downlight");
+  const [addType, setAddType] = useState<DeviceType | "spotlight_proposed">("downlight");
   const [showRemoved, setShowRemoved] = useState(false);
   const box = useRef<HTMLDivElement>(null);
 
@@ -55,7 +55,8 @@ export default function ReviewCanvas({ doc, project, highlight, onEdit }: Props)
     const r = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
     const pg = project.pages.find((p) => p.index === page);
-    const d: Detection = { id: newId("m"), page, type: addType, x, y, pass: "manual", status: "ok", floor: pg?.floor, room: nearestRoom(x, y) };
+    const prop = addType === "spotlight_proposed";
+    const d: Detection = { id: newId(prop ? "s" : "m"), page, type: prop ? "spotlight" : addType, x, y, pass: "manual", status: "ok", floor: pg?.floor, room: nearestRoom(x, y), ...(prop ? { proposed: true, note: "STC đề xuất thêm" } : {}) };
     onEdit([...project.detections, d], { action: "add", detectionId: d.id, after: d });
     setSel(d.id);
   };
@@ -77,7 +78,8 @@ export default function ReviewCanvas({ doc, project, highlight, onEdit }: Props)
         <span>{Math.round(zoom * 100)}%</span>
         <button onClick={() => setZoom((z) => Math.min(5, z + 0.5))}>＋</button>
         <span className="note">Thêm thiết bị: chọn loại rồi <b>Alt + click</b> lên bản vẽ</span>
-        <select value={addType} onChange={(e) => setAddType(e.target.value as DeviceType)}>
+        <select value={addType} onChange={(e) => setAddType(e.target.value as DeviceType | "spotlight_proposed")}>
+          <option value="spotlight_proposed">★ Spotlight đề xuất thêm (vòng cam)</option>
           {DEVICE_TYPES.map((t) => <option key={t} value={t}>{DEVICE_LABEL[t]}</option>)}
         </select>
         <label className="note"><input type="checkbox" checked={showRemoved} onChange={(e) => setShowRemoved(e.target.checked)} /> hiện điểm đã xoá</label>
@@ -85,14 +87,15 @@ export default function ReviewCanvas({ doc, project, highlight, onEdit }: Props)
       <div className="legendDots" style={{ marginBottom: 8 }}>
         {counts.map(([t, n]) => <span key={t}><b style={{ background: color(t) }} />{DEVICE_LABEL[t]}: {n}</span>)}
         <span><b style={{ background: "#facc15" }} />AI soát lại có thay đổi</span>
+        {project.detections.some((d) => d.page === page && d.proposed && d.status !== "removed") && <span><b style={{ background: "#ea580c" }} />Spotlight đề xuất: {project.detections.filter((d) => d.page === page && d.proposed && d.status !== "removed").length}</span>}
       </div>
       <div className="canvasBox" ref={box}>
         <div className="canvasInner" style={{ width: `${zoom * 100}%` }} onClick={addAt}>
           {img[page] ? <img src={img[page]} alt="" draggable={false} /> : <div style={{ padding: 40 }} className="note">{doc ? "Đang dựng bản vẽ…" : "Không có file bản vẽ (chế độ nhập JSON)."}</div>}
           {dets.map((d) => (
-            <div key={d.id} title={`${DEVICE_LABEL[d.type]}${d.circuits ? " – Line " + d.circuits : ""}${d.room ? " – " + d.room : ""}`}
-              className={`mk ${d.status} ${highlight.includes(d.id) || sel === d.id ? "hl" : ""}`}
-              style={{ left: `${d.x * 100}%`, top: `${d.y * 100}%`, borderColor: color(d.type) }}
+            <div key={d.id} title={`${d.proposed ? "★ ĐỀ XUẤT – " : ""}${DEVICE_LABEL[d.type]}${d.circuits ? " – Line " + d.circuits : ""}${d.room ? " – " + d.room : ""}`}
+              className={`mk ${d.status} ${d.proposed ? "prop" : ""} ${highlight.includes(d.id) || sel === d.id ? "hl" : ""}`}
+              style={{ left: `${d.x * 100}%`, top: `${d.y * 100}%`, borderColor: d.proposed ? "#ea580c" : color(d.type) }}
               onClick={(e) => { e.stopPropagation(); setSel(d.id); }} />
           ))}
           {selected && selected.page === page && (
@@ -103,6 +106,7 @@ export default function ReviewCanvas({ doc, project, highlight, onEdit }: Props)
                 </select>
                 <input placeholder="Phòng" defaultValue={selected.room} onBlur={(e) => update(selected.id, { room: e.target.value }, "room")} />
                 <input placeholder="Số mạch (vd 13,14,15)" defaultValue={selected.circuits} onBlur={(e) => update(selected.id, { circuits: e.target.value }, "circuits")} />
+                {["downlight", "spotlight"].includes(selected.type) && <label><input type="checkbox" checked={!!selected.proposed} onChange={(e) => update(selected.id, { proposed: e.target.checked }, "proposed")} /> STC đề xuất thêm (không có trên bản vẽ)</label>}
                 {selected.type === "switch" && <label><input type="checkbox" checked={!!selected.twoWay} onChange={(e) => update(selected.id, { twoWay: e.target.checked }, "twoWay")} /> 2 chiều</label>}
                 <div style={{ display: "flex", gap: 6 }}>
                   {selected.status === "removed"

@@ -26,6 +26,11 @@ function guessCustomer(file: string) {
   return `${who} ${nm}`;
 }
 
+const extrasOverrides = (x?: Project["extras"]): Record<string, number> => {
+  const g = x?.gate_ab ?? 0;
+  return g > 0 ? { gate_ab: g, gate_sw: g } : {};
+};
+
 export default function Home() {
   const [step, setStep] = useState<Step>(0);
   const [file, setFile] = useState<File | null>(null);
@@ -53,7 +58,7 @@ export default function Home() {
 
   const boq = useMemo(() => (project && settings ? buildBOQ(project, settings) : null), [project, settings]);
   const checks = useMemo(() => (project ? crossCheck(project) : []), [project]);
-  const quote = useMemo(() => (boq && settings && catalog.length ? computeQuote(boq, catalog, settings) : null), [boq, catalog, settings]);
+  const quote = useMemo(() => (boq && settings && catalog.length ? computeQuote(boq, catalog, settings, extrasOverrides(project?.extras)) : null), [boq, catalog, settings, project?.extras]);
 
   const pick = async (f: File) => {
     setError("");
@@ -194,9 +199,10 @@ export default function Home() {
         )}
 
         {step === 3 && project && boq && quote && settings && (
-          <QuoteEditor project={project} boq={boq} quote={quote} checks={checks} catalog={catalog} settings={settings}
+          <QuoteEditor project={project} doc={doc} boq={boq} quote={quote} checks={checks} catalog={catalog} settings={settings}
             onCatalog={(c) => { setCatalog(c); saveCatalog(c); }} onSettings={(s) => { setSettings(s); saveSettings(s); }}
-            onExported={() => setProject({ ...project, status: "exported" })} />
+            onProject={(patch) => setProject((p) => (p ? { ...p, ...patch } : p))}
+            onExported={() => setProject((p) => (p ? { ...p, status: "exported" } : p))} />
         )}
       </main>
     </>
