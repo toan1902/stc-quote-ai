@@ -65,7 +65,7 @@ export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settin
   const sh = wb.addWorksheet("Smart Home");
   header(sh, "BẢNG DỰ TOÁN SMART HOME FPT", 9);
   hrow(sh, 8, ["STT", "Tên thiết bị", "ĐVT", "SL", "Đơn giá niêm yết (đ)", "Giảm (%)", "Giá sau giảm (đ)", "Thành tiền (đ)", "Thành tiền niêm yết (đ)"]);
-  const linkCode: Record<string, string> = { sw1: "sw1", sw2: "sw2", sw3: "sw3", sw4: "sw4", ir: "ir", curtain_sw: "curtain_sw", curtain_motor: "curtain_motor", rail: "rail", cam_in: "cam_in", cam_out: "cam_out", hub: "hub", zigbee: "zigbee" };
+  const linkCode: Record<string, string> = { sw1: "sw1", sw2: "sw2", sw3: "sw3", sw4: "sw4", ir: "ir", curtain_sw: "curtain_sw", curtain_motor: "curtain_motor", rail: "rail", cam_in: "cam_in", cam_out: "cam_out", hub: "hub", hub_pb650: "hub", zigbee: "zigbee" };
   r = 9; let n = 0; const secRows: number[] = [];
   for (const sec of q.sections) {
     const sr = r; secRows.push(sr); secRow(sh, r, sec.title, 9); sh.mergeCells(r, 1, r, 7); r++;
