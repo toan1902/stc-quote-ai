@@ -48,3 +48,25 @@ export function download(name: string, data: BlobPart, type: string) {
 }
 
 export const slug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");
+
+/** Sao lưu toàn bộ dữ liệu trên máy này: hồ sơ khách + bảng giá + cài đặt (1 file). */
+export interface Backup { type: "stc-quote-backup"; version: 1; at: string; projects: Project[]; catalog: unknown; catalogRev: string | null; settings: unknown }
+export const makeBackup = (): Backup => ({
+  type: "stc-quote-backup", version: 1, at: new Date().toISOString(), projects: listProjects(),
+  catalog: safe(() => JSON.parse(localStorage.getItem("stc_catalog") || "null"), null), catalogRev: safe(() => localStorage.getItem("stc_catalog_rev"), null),
+  settings: safe(() => JSON.parse(localStorage.getItem("stc_settings") || "null"), null),
+});
+/** Khôi phục: gộp hồ sơ (giữ bản sửa mới hơn), bảng giá & cài đặt chỉ ghi khi máy này chưa có hoặc withPrices. */
+export function restoreBackup(b: Backup, withPrices: boolean): { added: number; updated: number; kept: number } {
+  if (b?.type !== "stc-quote-backup" || !Array.isArray(b.projects)) throw new Error("Không phải file sao lưu STC Quote AI");
+  const all = readAll(); let added = 0, updated = 0, kept = 0;
+  for (const p of b.projects) {
+    if (!p?.id) continue;
+    const cur = all[p.id];
+    if (!cur) { all[p.id] = p; added++; } else if ((p.updatedAt || "") > (cur.updatedAt || "")) { all[p.id] = p; updated++; } else kept++;
+  }
+  localStorage.setItem(PKEY, JSON.stringify(all));
+  if (b.catalog && (withPrices || !localStorage.getItem("stc_catalog"))) { localStorage.setItem("stc_catalog", JSON.stringify(b.catalog)); if (b.catalogRev) localStorage.setItem("stc_catalog_rev", b.catalogRev); }
+  if (b.settings && (withPrices || !localStorage.getItem("stc_settings"))) localStorage.setItem("stc_settings", JSON.stringify(b.settings));
+  return { added, updated, kept };
+}

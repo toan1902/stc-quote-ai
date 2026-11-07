@@ -8,7 +8,7 @@ import { importTakeoff, validateTakeoff } from "@/lib/core/takeoff";
 import { newId } from "@/lib/core/merge";
 import { loadPdf, type PdfDoc } from "@/lib/client/pdf";
 import { analyseStructure, countDevices, COUNT_DISCIPLINES } from "@/lib/client/pipeline";
-import { deleteProject, download, listProjects, loadCatalog, loadSettings, saveCatalog, saveProject, saveSettings, slug } from "@/lib/client/store";
+import { deleteProject, download, listProjects, makeBackup, restoreBackup, type Backup, loadCatalog, loadSettings, saveCatalog, saveProject, saveSettings, slug } from "@/lib/client/store";
 import { exportTakeoff } from "@/lib/core/takeoff";
 import { vnd } from "@/lib/core/words";
 import ReviewCanvas from "@/components/ReviewCanvas";
@@ -70,6 +70,23 @@ export default function Home() {
                 <h2 style={{ margin: 0 }}>Hồ sơ khách hàng ({saved.length})</h2>
                 <input placeholder="Tìm tên khách / địa chỉ…" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 260 }} />
                 <span className="note">Lưu trên trình duyệt máy này. Mỗi khách 1 hồ sơ riêng – sửa khách này không ảnh hưởng khách khác.</span>
+                <span style={{ flex: 1 }} />
+                <button onClick={() => { const b = makeBackup(); const d = new Date(); download(`SAOLUU_STC_QUOTE_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}_${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}.json`, JSON.stringify(b), "application/json"); localStorage.setItem("stc_last_backup", b.at); setSaved(listProjects()); }}>💾 Sao lưu toàn bộ</button>
+                <label className="btn ghost" style={{ cursor: "pointer" }}>♻ Khôi phục từ file sao lưu
+                  <input type="file" accept="application/json" hidden onChange={async (e) => {
+                    const f = e.target.files?.[0]; e.target.value = ""; if (!f) return;
+                    try {
+                      const b = JSON.parse(await f.text()) as Backup;
+                      const withPrices = confirm(`File sao lưu ngày ${new Date(b.at).toLocaleString("vi-VN")} có ${b.projects?.length ?? 0} hồ sơ khách.\n\nBấm OK: khôi phục cả bảng giá & cài đặt trong file.\nBấm Huỷ: chỉ khôi phục hồ sơ khách (giữ bảng giá hiện tại).`);
+                      const r = restoreBackup(b, withPrices);
+                      setSaved(listProjects()); if (withPrices) { setCatalog(loadCatalog()); setSettings(loadSettings()); }
+                      alert(`Đã khôi phục: thêm ${r.added} khách, cập nhật ${r.updated} khách (bản trong file mới hơn), giữ nguyên ${r.kept} khách (bản trên máy mới hơn).`);
+                    } catch (err) { alert(`Không khôi phục được: ${(err as Error).message}`); }
+                  }} /></label>
+              </div>
+              <div className="note" style={{ marginTop: 6 }}>
+                {(() => { const last = typeof window !== "undefined" ? localStorage.getItem("stc_last_backup") : null; const days = last ? Math.floor((Date.now() - Date.parse(last)) / 864e5) : null;
+                  return last ? <>Sao lưu gần nhất: <b>{new Date(last).toLocaleString("vi-VN")}</b>{days! >= 7 && <b className="err"> – đã {days} ngày, nên sao lưu lại</b>}</> : <b className="err">Chưa sao lưu lần nào – hồ sơ chỉ nằm trên trình duyệt này, xoá lịch sử duyệt web là mất. Bấm “💾 Sao lưu toàn bộ”.</b>; })()}
               </div>
               {saved.length === 0 ? <p className="note">Chưa có hồ sơ nào.</p> : (
                 <table className="t" style={{ marginTop: 10 }}>
