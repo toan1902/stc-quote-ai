@@ -64,6 +64,32 @@ export default function Home() {
   useEffect(() => { if (project) { setStorageFull(!saveProject(project)); } }, [project]);
   useEffect(() => { if (step === 0) setSaved(listProjects()); }, [step]);
 
+  const [showList, setShowList] = useState(false);
+  const savedList = () => (<>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <h2 style={{ margin: 0 }}>Hồ sơ khách hàng ({saved.length})</h2>
+                <input placeholder="Tìm tên khách / địa chỉ…" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 260 }} />
+                <span className="note">Lưu trên trình duyệt máy này. Mỗi khách 1 hồ sơ riêng – sửa khách này không ảnh hưởng khách khác.</span>
+              </div>
+              {saved.length === 0 ? <p className="note">Chưa có hồ sơ nào.</p> : (
+                <table className="t" style={{ marginTop: 10 }}>
+                  <thead><tr><th>Khách hàng</th><th>Địa chỉ</th><th>Ngày lập</th><th>Tổng báo giá</th><th>Link online</th><th>Sửa lần cuối</th><th /></tr></thead>
+                  <tbody>{saved.filter((p) => !q || `${p.customer} ${p.address}`.toLowerCase().includes(q.toLowerCase())).map((p) => (
+                    <tr key={p.id}>
+                      <td><b>{p.customer}</b></td><td>{p.address}</td><td>{p.date}</td>
+                      <td style={{ textAlign: "right" }}>{settings && catalog.length ? vnd(totalOf(p)) : ""}</td>
+                      <td>{p.shareId ? (p.shareStatus === "locked" ? <b style={{ color: "var(--green)" }}>ĐÃ CHỐT</b> : "Đang gửi khách") : <span className="note">chưa tạo</span>}</td>
+                      <td className="note">{p.updatedAt ? new Date(p.updatedAt).toLocaleString("vi-VN") : ""}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>
+                        <button className="primary" onClick={() => { openProject(p); setShowList(false); }}>{p.shareStatus === "locked" ? "Xem (đã chốt)" : "Mở / Sửa"}</button>{" "}
+                        <button onClick={() => download(`HOSO_${slug(p.customer)}_${slug(p.address)}.json`, JSON.stringify(exportTakeoff(p), null, 1), "application/json")}>Tải hồ sơ</button>{" "}
+                        <button className="ghost" onClick={() => { if (confirm(`Xoá hồ sơ “${p.customer} – ${p.address}” khỏi máy này?${p.shareId ? "\nLink online của khách vẫn còn; muốn sửa lại cần file HOSO đã tải." : ""}`)) { deleteProject(p.id); setSaved(listProjects()); } }}>Xoá</button>
+                      </td>
+                    </tr>))}</tbody>
+                </table>
+              )}
+  </>);
+
   const log = (m: string, f?: number) => { setLogs((l) => [...l.slice(-200), `${new Date().toLocaleTimeString("vi-VN")}  ${m}`]); if (f != null) setProgress(f); };
 
   const eff = useMemo(() => (settings ? { ...settings, ...(project?.options ?? {}) } : null), [settings, project?.options]);
@@ -139,10 +165,18 @@ export default function Home() {
         <div className="steps">{STEPS.map((s, i) => <span key={s} className={i === step ? "on" : i < step ? "done" : ""} onClick={() => project && i >= 2 && setStep(i as Step)}>{s}</span>)}</div>
         <div className="sp" />
         {project && <span className="cur">Đang làm: <b>{project.customer}</b> · {project.address}</span>}
-        <button onClick={newCustomer}>＋ Khách mới</button>
+        <button onClick={() => { setSaved(listProjects()); setShowList(true); }}>📁 Hồ sơ khách ({saved.length})</button>
+        <button onClick={() => { newCustomer(); setShowList(false); }}>＋ Khách mới</button>
         {health && <span className="note">AI: {health.provider} · {health.model}{!health.configured && <b className="err"> (chưa có key)</b>}</span>}
         <button className="ghost" onClick={() => fetch("/api/logout", { method: "POST" }).then(() => (location.href = "/login"))}>Đăng xuất</button>
       </header>
+      {showList && (
+        <div className="modalBg" onClick={() => setShowList(false)}>
+          <div className="card modal" onClick={(e) => e.stopPropagation()}>
+            <button className="ghost" style={{ float: "right" }} onClick={() => setShowList(false)}>✕ Đóng</button>
+            {savedList()}
+          </div>
+        </div>)}
       <main className="wrap">
         {error && <div className="card err">{error}</div>}
         {storageFull && <div className="card err">Bộ nhớ trình duyệt đã đầy – hãy “Tải hồ sơ” các khách cũ về máy rồi xoá bớt trong danh sách.</div>}
@@ -177,30 +211,7 @@ export default function Home() {
               </ol>
               <label className="drop"><input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />Chọn file takeoff JSON hoặc file hồ sơ <code>HOSO_….json</code></label>
             </div>
-            <div className="card" style={{ gridColumn: "1 / -1" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <h2 style={{ margin: 0 }}>Hồ sơ khách hàng ({saved.length})</h2>
-                <input placeholder="Tìm tên khách / địa chỉ…" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 260 }} />
-                <span className="note">Lưu trên trình duyệt máy này. Mỗi khách 1 hồ sơ riêng – sửa khách này không ảnh hưởng khách khác.</span>
-              </div>
-              {saved.length === 0 ? <p className="note">Chưa có hồ sơ nào.</p> : (
-                <table className="t" style={{ marginTop: 10 }}>
-                  <thead><tr><th>Khách hàng</th><th>Địa chỉ</th><th>Ngày lập</th><th>Tổng báo giá</th><th>Link online</th><th>Sửa lần cuối</th><th /></tr></thead>
-                  <tbody>{saved.filter((p) => !q || `${p.customer} ${p.address}`.toLowerCase().includes(q.toLowerCase())).map((p) => (
-                    <tr key={p.id}>
-                      <td><b>{p.customer}</b></td><td>{p.address}</td><td>{p.date}</td>
-                      <td style={{ textAlign: "right" }}>{settings && catalog.length ? vnd(totalOf(p)) : ""}</td>
-                      <td>{p.shareId ? (p.shareStatus === "locked" ? <b style={{ color: "var(--green)" }}>ĐÃ CHỐT</b> : "Đang gửi khách") : <span className="note">chưa tạo</span>}</td>
-                      <td className="note">{p.updatedAt ? new Date(p.updatedAt).toLocaleString("vi-VN") : ""}</td>
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        <button className="primary" onClick={() => openProject(p)}>Mở</button>{" "}
-                        <button onClick={() => download(`HOSO_${slug(p.customer)}_${slug(p.address)}.json`, JSON.stringify(exportTakeoff(p), null, 1), "application/json")}>Tải hồ sơ</button>{" "}
-                        <button className="ghost" onClick={() => { if (confirm(`Xoá hồ sơ “${p.customer} – ${p.address}” khỏi máy này?${p.shareId ? "\nLink online của khách vẫn còn; muốn sửa lại cần file HOSO đã tải." : ""}`)) { deleteProject(p.id); setSaved(listProjects()); } }}>Xoá</button>
-                      </td>
-                    </tr>))}</tbody>
-                </table>
-              )}
-            </div>
+            <div className="card" style={{ gridColumn: "1 / -1" }}>{savedList()}</div>
           </div>
         )}
 

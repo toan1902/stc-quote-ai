@@ -51,3 +51,7 @@ a.btn.primary{background:var(--navy,#1d3a8a);color:#fff;border-color:transparent
 .nrmTag{background:#e5e7eb;color:#374151;border:1px solid #9ca3af}
 .qtyEdited{background:#fef9c3!important;border-color:#eab308!important}
 .top .cur{font-size:13px;padding:4px 10px;border-radius:6px;background:#eef2ff;color:#1e3a8a;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modalBg{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:60px 16px;overflow:auto}
+.modal{width:min(1150px,100%);max-height:calc(100vh - 120px);overflow:auto}
+.lockFs{border:0;padding:0;margin:0;min-width:0}.lockFs:disabled{opacity:.6}
+.lockNote{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px}

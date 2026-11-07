@@ -103,6 +103,8 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
       <div>
         <div className="card">
           <h2>Bảng giá & chiết khấu</h2>
+          {locked && <div className="lockNote">🔒 Báo giá đã CHỐT CỌC – đang khoá, không sửa được. Muốn điều chỉnh: bấm <b>“Mở khoá (huỷ chốt)”</b> ở ô Link online bên phải, sửa xong bấm chốt lại.</div>}
+          <fieldset disabled={locked} className="lockFs">
           <p className="note">Đơn giá: dùng chung cho mọi khách (bảng giá công ty). Các lựa chọn bên dưới (loại đèn, bộ trung tâm, % lắp đặt/chiết khấu…): <b>riêng cho khách {project.customer}</b>. <button className="ghost" onClick={() => { onSaveDefaults(); alert("Đã lưu làm mặc định cho khách mới."); }}>Lưu làm mặc định cho khách mới</button></p>
           <table className="t">
             <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá niêm yết</th><th>Giảm</th></tr></thead>
@@ -155,10 +157,12 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
                 <option value="1">Có (1 mặt nhiều nút)</option><option value="0">Không</option></select></label>
             <label className="f">Ray rèm mặc định (m/điểm)<input type="number" step="0.5" value={settings.railPerCurtainM} onChange={(e) => onSettings({ ...settings, railPerCurtainM: Number(e.target.value) })} /></label>
           </div>
+          </fieldset>
         </div>
 
         <div className="card">
           <h2>Đề xuất thêm & hạng mục ngoài bản vẽ</h2>
+          <fieldset disabled={locked} className="lockFs">
           <label className="chk"><input type="checkbox" checked={settings.includeProposal} onChange={(e) => onSettings({ ...settings, includeProposal: e.target.checked })} />
             <span><b>Đưa đề xuất spotlight vào báo giá</b> – cộng tiền đèn đề xuất + thêm trang bản vẽ đánh dấu vị trí (vòng cam).<br />
               <span className="note">{propN ? `Đang có ${propN} spotlight đề xuất trên ${boq.proposals.length} trang.` : "Chưa có điểm đề xuất – ở bước Duyệt BOQ chọn “★ Spotlight đề xuất thêm” rồi Alt + click lên bản vẽ."}{propN > 0 && !doc && " (Cần mở kèm file PDF bản vẽ để in trang bản vẽ đề xuất.)"}</span></span></label>
@@ -176,6 +180,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
           </div>
           {gateN > 0 && !(gate?.price) && <p className="warn">Nhập đơn giá bộ cổng AB – chưa có giá thì cổng chưa được đưa vào báo giá.</p>}
           {gateN > 0 && !!gate?.price && <p className="note">Báo giá tự thêm {gateN} công tắc điều khiển cổng FPT (mở cổng qua app/kịch bản) và 1 trang “Dự toán cổng tự động AB Gate”. Lắp đặt, cài hành trình cổng: <b>miễn phí</b> khi chọn hệ sinh thái FPT Smart Home. Chưa gồm pin Lithium, xây hố/đế âm sàn, thoát nước, đường điện tới chân cổng.</p>}
+          </fieldset>
         </div>
       </div>
 
