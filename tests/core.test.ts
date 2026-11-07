@@ -190,3 +190,18 @@ test("AB Gate: 38.390.000 list → 30.000.000 sale, install free (15% promo show
   const sw = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_sw")!;
   assert.equal(q.shTotal - base.shTotal, 30000000 + sw.after + Math.round(sw.price * 0.15));
 });
+
+test("lighting: AB lights labelled ordinary, FPT smart prices match FPT retail list, upgrade cost computed", () => {
+  const boq = buildBOQ(load(), DEFAULT_SETTINGS);
+  const cat = (c: string) => DEFAULT_CATALOG.find((x) => x.code === c)!;
+  assert.equal(cat("athena").price, 869000); assert.ok(cat("athena").smart);
+  assert.equal(cat("downlight_fpt").price, 484000); assert.ok(cat("downlight_fpt").smart);
+  for (const c of ["downlight_ab", "spotlight_ab", "tube_ab"]) { assert.ok(!cat(c).smart); assert.match(cat(c).name, /THƯỜNG/); }
+  const q = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS);
+  const n = qtyOf(boq, "downlight");
+  assert.equal(q.upgrade.qty, n);
+  assert.equal(q.upgrade.extra, Math.round((484000 - 248000) * n * 0.65));
+  const smart = computeQuote(boq, DEFAULT_CATALOG, { ...DEFAULT_SETTINGS, defaultDownlight: "downlight_fpt" });
+  assert.equal(smart.lightLines[0].code, "downlight_fpt"); assert.equal(smart.upgrade.qty, 0);
+  assert.equal(smart.lTotal - q.lTotal, q.upgrade.extra);
+});
