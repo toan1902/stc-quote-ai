@@ -3,7 +3,10 @@ import { normType, newId } from "./merge.ts";
 
 export interface TakeoffJSON {
   version: 1;
-  project: { customer: string; address?: string; date?: string; sourceName?: string };
+  project: { customer: string; address?: string; date?: string; sourceName?: string;
+    /** hồ sơ đầy đủ (app ≥ 11/2026): mở lại đúng khách, đúng link online, đúng lựa chọn */
+    id?: string; shareId?: string; shareStatus?: "live" | "locked"; areaM2?: number;
+    extras?: Project["extras"]; options?: Project["options"] };
   pages?: { index: number; discipline: string; floor?: string; title?: string }[];
   detections: (Partial<Detection> & { type: string; qty?: number })[];
   estimates?: { key: string; meters: number }[];
@@ -35,7 +38,8 @@ export function importTakeoff(t: TakeoffJSON, today: string): Project {
     });
   }
   return {
-    id: newId("p"), customer: t.project.customer, address: t.project.address || "Đắk Lắk", date: t.project.date || today,
+    id: t.project.id || newId("p"), customer: t.project.customer, address: t.project.address || "Đắk Lắk", date: t.project.date || today,
+    shareId: t.project.shareId, shareStatus: t.project.shareStatus, areaM2: t.project.areaM2, extras: t.project.extras, options: t.project.options,
     sourceName: t.project.sourceName || "takeoff.json", status: "draft", source: "claude-import",
     pages: (t.pages || []).map((p) => ({ index: p.index, discipline: p.discipline as Project["pages"][number]["discipline"], floor: p.floor || "Tầng 1", title: p.title, confidence: 1, analysed: true })),
     legend: [], detections: dets, rooms: [], estimates: (t.estimates || []).map((e) => ({ ...e, source: "import" as const })),
@@ -46,7 +50,8 @@ export function importTakeoff(t: TakeoffJSON, today: string): Project {
 export function exportTakeoff(p: Project): TakeoffJSON {
   return {
     version: 1,
-    project: { customer: p.customer, address: p.address, date: p.date, sourceName: p.sourceName },
+    project: { customer: p.customer, address: p.address, date: p.date, sourceName: p.sourceName,
+      id: p.id, shareId: p.shareId, shareStatus: p.shareStatus, areaM2: p.areaM2, extras: p.extras, options: p.options },
     pages: p.pages.map((x) => ({ index: x.index, discipline: x.discipline, floor: x.floor, title: x.title })),
     detections: p.detections.filter((d) => d.status !== "removed").map(({ id, page, type, x, y, room, circuits, twoWay, note, floor, proposed }) => ({ id, page, type, x, y, room, circuits, twoWay, note, floor, proposed })),
     estimates: p.estimates.map(({ key, meters }) => ({ key, meters })),
