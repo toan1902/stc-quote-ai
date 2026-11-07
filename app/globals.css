@@ -46,3 +46,6 @@ table.t td{border-bottom:1px solid var(--line);padding:6px 7px;vertical-align:to
 a.btn{display:inline-block;padding:7px 12px;border:1px solid #cbd5e1;border-radius:8px;text-decoration:none;color:inherit;background:#fff}
 a.btn.primary{background:var(--navy,#1d3a8a);color:#fff;border-color:transparent}
 .okbox{margin-top:10px;padding:10px;border:1px solid #86efac;background:#f0fdf4;border-radius:8px}
+.smtTag,.nrmTag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:3px;font-size:10px;font-weight:700;vertical-align:middle}
+.smtTag{background:#16a34a;color:#fff}
+.nrmTag{background:#e5e7eb;color:#374151;border:1px solid #9ca3af}
