@@ -26,10 +26,10 @@ export function crossCheck(p: Project): CrossCheck[] {
     out.push({ code: "C1", severity: "warn", message: `Line ${c}: có ${ds.length} thiết bị chiếu sáng nhưng không tìm thấy công tắc điều khiển.`, detectionIds: ds.map((d) => d.id) });
   }
   const noCircuitLoads = loads.filter((d) => !d.proposed && !parseCircuits(d.circuits).length);
-  if (sw.length && noCircuitLoads.length) out.push({ code: "C1", severity: "info", message: `${noCircuitLoads.length} đèn chưa đọc được số mạch – kiểm tra lại trên bản vẽ.`, detectionIds: noCircuitLoads.map((d) => d.id) });
+  if (sw.some((d) => parseCircuits(d.circuits).length) && noCircuitLoads.length) out.push({ code: "C1", severity: "info", message: `${noCircuitLoads.length} đèn chưa đọc được số mạch – kiểm tra lại trên bản vẽ.`, detectionIds: noCircuitLoads.map((d) => d.id) });
 
   // C2 – switch without circuits
-  const swNo = sw.filter((d) => !parseCircuits(d.circuits).length);
+  const swNo = sw.filter((d) => !parseCircuits(d.circuits).length && !d.gangs);
   if (swNo.length) out.push({ code: "C2", severity: "error", message: `${swNo.length} công tắc chưa đọc được số mạch → không xác định được số nút.`, detectionIds: swNo.map((d) => d.id) });
 
   // C3 – cameras LV vs camera sockets on power plan

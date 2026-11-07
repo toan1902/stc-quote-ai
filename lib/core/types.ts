@@ -42,6 +42,7 @@ export interface Detection {
   box?: [number, number, number, number]; // x1,y1,x2,y2
   room?: string;
   circuits?: string;                      // raw, e.g. "13,14,15"
+  gangs?: number;                         // số nút khi bản vẽ không ghi số mạch (nhập tay/ước tính)
   twoWay?: boolean;
   note?: string;
   proposed?: boolean;                     // STC đề xuất thêm (không có trên bản vẽ gốc)
@@ -86,7 +87,7 @@ export interface Settings {
   lightDiscount: number;        // lighting discount
   lightInstall: number;         // lighting install %
   defaultDownlight: "downlight_ab" | "downlight_fpt" | "athena" | "spotlight_ab";
-  defaultSpotlight: "spotlight_ab" | "athena";
+  defaultSpotlight: "spotlight_ab" | "athena" | "tube_ab";
   hubModel: "hub" | "hub_pb650";   // mã bộ trung tâm: T950 hoặc Play Box 650 (giá theo mã)
   railPerCurtainM: number;      // default rail metres per curtain point
   mergeAdjacentSwitches: boolean;
@@ -111,7 +112,7 @@ export interface Project {
   floors?: number;
   areaM2?: number;
   shareId?: string;            // link báo giá online
-  extras?: { gate_ab?: number };  // hạng mục ngoài bản vẽ (cổng tự động…)
+  extras?: Record<string, number>;  // số lượng sửa tay theo mã hàng (sw1, hub, gate_ab, gate_sw, light_downlight_ab…) + hạng mục ngoài bản vẽ
   options?: Partial<Settings>;    // lựa chọn riêng của khách này (loại đèn, bộ trung tâm, % chiết khấu…)
   shareStatus?: "live" | "locked"; // trạng thái link online (ghi lại để hiện trong danh sách)
   updatedAt?: string;

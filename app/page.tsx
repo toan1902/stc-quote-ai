@@ -28,9 +28,13 @@ function guessCustomer(file: string) {
   return `${who} ${nm}`;
 }
 
+/** số lượng sửa tay theo mã hàng; cổng AB Gate tự kèm công tắc cổng (trừ khi đã sửa tay gate_sw) */
 const extrasOverrides = (x?: Project["extras"]): Record<string, number> => {
-  const g = x?.gate_ab ?? 0;
-  return g > 0 ? { gate_ab: g, gate_sw: g } : {};
+  const o: Record<string, number> = {};
+  for (const [k, v] of Object.entries(x ?? {})) if (typeof v === "number" && v >= 0) o[k] = v;
+  const g = o.gate_ab ?? 0;
+  if (g > 0 && o.gate_sw == null) o.gate_sw = g;
+  return o;
 };
 
 export default function Home() {

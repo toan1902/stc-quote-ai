@@ -1,0 +1,1012 @@
+{
+ "version": 1,
+ "project": {
+  "customer": "Anh Tài",
+  "address": "Buôn Hồ, Đắk Lắk",
+  "date": "07/11/2026",
+  "sourceName": "BVTC_KI_N_TR_C__I_N_N__C_ANH_T_I_1.pdf",
+  "options": {
+   "defaultSpotlight": "tube_ab",
+   "defaultDownlight": "downlight_ab"
+  },
+  "extras": {
+   "gate_sw": 1
+  }
+ },
+ "pages": [
+  {
+   "index": 35,
+   "discipline": "power",
+   "floor": "Tầng hầm",
+   "title": "Mặt bằng cấp điện tầng hầm"
+  },
+  {
+   "index": 36,
+   "discipline": "power",
+   "floor": "Tầng 1",
+   "title": "Mặt bằng cấp điện tầng 1"
+  },
+  {
+   "index": 37,
+   "discipline": "power",
+   "floor": "Tầng 2",
+   "title": "Mặt bằng cấp điện tầng 2"
+  },
+  {
+   "index": 41,
+   "discipline": "lighting",
+   "floor": "Tầng hầm",
+   "title": "Cấp điện trần đèn tầng hầm"
+  },
+  {
+   "index": 42,
+   "discipline": "lighting",
+   "floor": "Tầng 1",
+   "title": "Cấp điện trần đèn tầng 1"
+  },
+  {
+   "index": 43,
+   "discipline": "lighting",
+   "floor": "Tầng 2",
+   "title": "Cấp điện trần đèn tầng 2"
+  }
+ ],
+ "detections": [
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Quầy bar / bếp tầng hầm",
+   "x": 0.2936,
+   "y": 0.4139
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "WC tầng hầm",
+   "x": 0.296,
+   "y": 0.3451
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Phòng sinh hoạt chung tầng hầm",
+   "x": 0.3268,
+   "y": 0.5655
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Quầy bar / bếp tầng hầm",
+   "x": 0.3268,
+   "y": 0.4139
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Phòng sinh hoạt chung tầng hầm",
+   "x": 0.2936,
+   "y": 0.5655
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Phòng sinh hoạt chung tầng hầm",
+   "x": 0.2936,
+   "y": 0.4644
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "WC tầng hầm",
+   "x": 0.3246,
+   "y": 0.3451
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Quầy bar / bếp tầng hầm",
+   "x": 0.2625,
+   "y": 0.4139
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Phòng sinh hoạt chung tầng hầm",
+   "x": 0.2936,
+   "y": 0.5146
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "WC tầng hầm",
+   "x": 0.2625,
+   "y": 0.3436
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Phòng sinh hoạt chung tầng hầm",
+   "x": 0.3604,
+   "y": 0.464
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Phòng sinh hoạt chung tầng hầm",
+   "x": 0.3604,
+   "y": 0.5146
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Phòng sinh hoạt chung tầng hầm",
+   "x": 0.3604,
+   "y": 0.5651
+  },
+  {
+   "page": 41,
+   "type": "downlight",
+   "room": "Phòng sinh hoạt chung tầng hầm",
+   "x": 0.3271,
+   "y": 0.464
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.2749,
+   "y": 0.4058
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng bếp",
+   "x": 0.4175,
+   "y": 0.2868
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ngủ tầng 1",
+   "x": 0.3389,
+   "y": 0.5157
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng bếp",
+   "x": 0.4175,
+   "y": 0.3475
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Cầu thang",
+   "x": 0.3725,
+   "y": 0.4007
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.4175,
+   "y": 0.4889
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ngủ tầng 1",
+   "x": 0.3318,
+   "y": 0.5157
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.3425,
+   "y": 0.4131
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.3092,
+   "y": 0.3778
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.2749,
+   "y": 0.335
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.3092,
+   "y": 0.4131
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ngủ tầng 1",
+   "x": 0.3057,
+   "y": 0.5562
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.494,
+   "y": 0.5286
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.3425,
+   "y": 0.4516
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.4557,
+   "y": 0.4889
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Cầu thang",
+   "x": 0.3832,
+   "y": 0.4512
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.4557,
+   "y": 0.569
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.4557,
+   "y": 0.5293
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng bếp",
+   "x": 0.4557,
+   "y": 0.3475
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ngủ tầng 1",
+   "x": 0.3057,
+   "y": 0.4955
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.3428,
+   "y": 0.3805
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng bếp",
+   "x": 0.4937,
+   "y": 0.3475
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng bếp",
+   "x": 0.4557,
+   "y": 0.2868
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Sảnh cầu thang – hành lang",
+   "x": 0.4175,
+   "y": 0.4415
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Cầu thang",
+   "x": 0.3725,
+   "y": 0.3401
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng bếp",
+   "x": 0.4937,
+   "y": 0.2868
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.3092,
+   "y": 0.4516
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ngủ tầng 1",
+   "x": 0.365,
+   "y": 0.4955
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ngủ tầng 1",
+   "x": 0.365,
+   "y": 0.5562
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Sảnh cầu thang – hành lang",
+   "x": 0.4175,
+   "y": 0.3945
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.4175,
+   "y": 0.5293
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.4937,
+   "y": 0.4889
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.4175,
+   "y": 0.569
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Phòng ăn",
+   "x": 0.494,
+   "y": 0.569
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Sảnh cầu thang – hành lang",
+   "x": 0.4557,
+   "y": 0.4411
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.3087,
+   "y": 0.335
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "WC + hành lang tầng 1",
+   "x": 0.3428,
+   "y": 0.335
+  },
+  {
+   "page": 42,
+   "type": "downlight",
+   "room": "Sảnh cầu thang – hành lang",
+   "x": 0.456,
+   "y": 0.3933
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Sân trước",
+   "x": 0.4439,
+   "y": 0.6129
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Sân trước",
+   "x": 0.6344,
+   "y": 0.6129
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Sân trước",
+   "x": 0.5869,
+   "y": 0.6129
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Sân trước",
+   "x": 0.4915,
+   "y": 0.6129
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Sân trước",
+   "x": 0.539,
+   "y": 0.6129
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Sân trước",
+   "x": 0.5869,
+   "y": 0.6634
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Sân trước",
+   "x": 0.6344,
+   "y": 0.6634
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Ban công P.Ngủ tầng 1",
+   "x": 0.2724,
+   "y": 0.534
+  },
+  {
+   "page": 42,
+   "type": "spotlight",
+   "room": "Sân trước",
+   "x": 0.539,
+   "y": 0.6634
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ 2",
+   "x": 0.4338,
+   "y": 0.2748
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ master",
+   "x": 0.2875,
+   "y": 0.4629
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.5102,
+   "y": 0.4695
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.5102,
+   "y": 0.4139
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ master",
+   "x": 0.2875,
+   "y": 0.5134
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ master",
+   "x": 0.348,
+   "y": 0.5138
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "WC tầng 2",
+   "x": 0.3527,
+   "y": 0.2934
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ master",
+   "x": 0.2875,
+   "y": 0.4124
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.5558,
+   "y": 0.5258
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng thay đồ",
+   "x": 0.2732,
+   "y": 0.3618
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.3887,
+   "y": 0.5251
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ 2",
+   "x": 0.4266,
+   "y": 0.2748
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "WC tầng 2",
+   "x": 0.3529,
+   "y": 0.3517
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.5102,
+   "y": 0.5251
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng thay đồ",
+   "x": 0.2732,
+   "y": 0.3078
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ 2",
+   "x": 0.4599,
+   "y": 0.2379
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.6017,
+   "y": 0.4695
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.4291,
+   "y": 0.5258
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.6014,
+   "y": 0.5258
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ master",
+   "x": 0.348,
+   "y": 0.4633
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.4695,
+   "y": 0.3591
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.6017,
+   "y": 0.4139
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ 2",
+   "x": 0.4002,
+   "y": 0.3121
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.4695,
+   "y": 0.4423
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ 2",
+   "x": 0.4601,
+   "y": 0.3113
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.4695,
+   "y": 0.5258
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "WC tầng 2",
+   "x": 0.3244,
+   "y": 0.293
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.5561,
+   "y": 0.3587
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "WC tầng 2",
+   "x": 0.3244,
+   "y": 0.3517
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.5102,
+   "y": 0.3587
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.4291,
+   "y": 0.4419
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.3887,
+   "y": 0.3587
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.3887,
+   "y": 0.4419
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ 2",
+   "x": 0.4005,
+   "y": 0.2375
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ master",
+   "x": 0.348,
+   "y": 0.4124
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ master",
+   "x": 0.3147,
+   "y": 0.4376
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Sảnh sinh hoạt tầng 2",
+   "x": 0.4294,
+   "y": 0.3587
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Phòng ngủ master",
+   "x": 0.3208,
+   "y": 0.4376
+  },
+  {
+   "page": 43,
+   "type": "downlight",
+   "room": "Hành lang ô thông tầng",
+   "x": 0.6017,
+   "y": 0.3587
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Ban công tầng 2",
+   "x": 0.5148,
+   "y": 0.5674
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Ban công tầng 2",
+   "x": 0.4673,
+   "y": 0.5674
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Ban công tầng 2",
+   "x": 0.5148,
+   "y": 0.6312
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Sân thượng",
+   "x": 0.6578,
+   "y": 0.5033
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Ban công tầng 2",
+   "x": 0.4197,
+   "y": 0.5674
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Ban công tầng 2",
+   "x": 0.5624,
+   "y": 0.6312
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Ban công tầng 2",
+   "x": 0.5624,
+   "y": 0.5674
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Sân thượng",
+   "x": 0.6578,
+   "y": 0.4392
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Sân thượng",
+   "x": 0.6578,
+   "y": 0.6312
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Ban công tầng 2",
+   "x": 0.6102,
+   "y": 0.5674
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Sân thượng",
+   "x": 0.6578,
+   "y": 0.5674
+  },
+  {
+   "page": 43,
+   "type": "spotlight",
+   "room": "Ban công tầng 2",
+   "x": 0.6102,
+   "y": 0.6312
+  },
+  {
+   "page": 41,
+   "type": "switch",
+   "room": "WC tầng hầm",
+   "note": "Đèn WC + quạt hút / đèn gương",
+   "gangs": 2
+  },
+  {
+   "page": 41,
+   "type": "switch",
+   "room": "Phòng sinh hoạt chung (cửa)",
+   "note": "Downlight sinh hoạt chung, đèn thả, quầy bar, LED dây",
+   "gangs": 4
+  },
+  {
+   "page": 41,
+   "type": "switch",
+   "room": "Gara – cửa vào trong",
+   "note": "Đèn gara",
+   "gangs": 1,
+   "twoWay": true
+  },
+  {
+   "page": 41,
+   "type": "switch",
+   "room": "Gara – cửa cuốn",
+   "note": "Đèn gara + đèn sân trước",
+   "gangs": 2,
+   "twoWay": true
+  },
+  {
+   "page": 42,
+   "type": "switch",
+   "room": "Phòng bếp",
+   "note": "Downlight bếp, LED dây / đèn tủ bếp",
+   "gangs": 2
+  },
+  {
+   "page": 42,
+   "type": "switch",
+   "room": "Phòng ăn",
+   "note": "Downlight phòng ăn, đèn thả bàn ăn, sảnh cầu thang",
+   "gangs": 3
+  },
+  {
+   "page": 42,
+   "type": "switch",
+   "room": "Hành lang – WC tầng 1",
+   "note": "Đèn hành lang, WC, khu giặt",
+   "gangs": 3
+  },
+  {
+   "page": 42,
+   "type": "switch",
+   "room": "Cầu thang tầng 1",
+   "note": "Downlight ô cầu thang, đèn trang trí cầu thang",
+   "gangs": 2,
+   "twoWay": true
+  },
+  {
+   "page": 42,
+   "type": "switch",
+   "room": "P.Ngủ tầng 1 (cửa)",
+   "note": "Downlight, đèn trần trang trí, ban công",
+   "gangs": 3
+  },
+  {
+   "page": 42,
+   "type": "switch",
+   "room": "P.Ngủ tầng 1 (đầu giường)",
+   "note": "Đèn tab đầu giường, tắt tổng",
+   "gangs": 2,
+   "twoWay": true
+  },
+  {
+   "page": 42,
+   "type": "switch",
+   "room": "Phòng khách + sân trước",
+   "note": "Đèn chùm, LED dây trần, spotlight sân trước, đèn ô thông tầng",
+   "gangs": 4
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "WC tầng 2",
+   "note": "Đèn WC + đèn gương",
+   "gangs": 2
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "P.Ngủ master (cửa)",
+   "note": "Downlight, LED dây trần, đèn trang trí",
+   "gangs": 3
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "P.Ngủ master (đầu giường)",
+   "note": "Đèn tab đầu giường, tắt tổng",
+   "gangs": 2,
+   "twoWay": true
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "Phòng thay đồ",
+   "note": "Downlight + LED tủ đồ",
+   "gangs": 1
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "P.Ngủ 2 (cửa)",
+   "note": "Downlight, LED dây trần, đèn trang trí",
+   "gangs": 3
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "P.Ngủ 2 (đầu giường)",
+   "note": "Đèn tab đầu giường, tắt tổng",
+   "gangs": 2,
+   "twoWay": true
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "Sảnh sinh hoạt + ban công",
+   "note": "Downlight sảnh, quạt trần/đèn, spotlight ban công",
+   "gangs": 3
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "Hành lang ô thông tầng + sân thượng",
+   "note": "Downlight vòng ô thông tầng, LED dây, spotlight sân thượng",
+   "gangs": 3
+  },
+  {
+   "page": 43,
+   "type": "switch",
+   "room": "Cầu thang tầng 2",
+   "note": "Downlight ô cầu thang",
+   "gangs": 1,
+   "twoWay": true
+  },
+  {
+   "page": 36,
+   "type": "camera_outdoor",
+   "room": "Cổng / ram dốc",
+   "x": 0.5924,
+   "y": 0.6788
+  },
+  {
+   "page": 36,
+   "type": "ac_indoor",
+   "room": "P.Ngủ tầng 1"
+  },
+  {
+   "page": 37,
+   "type": "ac_indoor",
+   "room": "P.Ngủ master"
+  },
+  {
+   "page": 37,
+   "type": "ac_indoor",
+   "room": "P.Ngủ 2"
+  }
+ ],
+ "estimates": [],
+ "acUnits": 3,
+ "panelAcCircuits": 3
+}

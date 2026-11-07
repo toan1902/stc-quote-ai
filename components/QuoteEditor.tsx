@@ -29,6 +29,18 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
   const gate = catalog.find((c) => c.code === "gate_ab");
   const gateN = project.extras?.gate_ab ?? 0;
   const [busyPdf, setBusyPdf] = useState(false);
+  // ---- số lượng sửa tay: lưu trong hồ sơ khách (project.extras), in PDF/Excel/link online theo số này
+  const ex = project.extras ?? {};
+  const okey = (l: { code: string; section: string; proposed?: boolean }) =>
+    l.section === "light" ? (l.proposed ? "light_prop" : `light_${l.code}`) : l.code === "hub_pb650" ? "hub" : l.code;
+  const setQty = (key: string, v: number | null) => {
+    const next = { ...ex };
+    if (v == null) delete next[key]; else next[key] = Math.max(0, Math.round(v));
+    onProject({ extras: next });
+  };
+  const manualKeys = Object.keys(ex).filter((k) => k !== "gate_ab");
+  const shown = new Set(quote.sections.flatMap((s) => s.lines).map((l) => okey(l)).concat(quote.lightLines.map((l) => okey(l))));
+  const addable = catalog.filter((c) => c.price > 0 && c.code !== "gate_ab" && c.code !== (settings.hubModel === "hub_pb650" ? "hub" : "hub_pb650") && !shown.has(okey(c)));
 
   const payload = (): PrintPayload => ({ project: { customer: project.customer, address: project.address, date: project.date, sourceName: project.sourceName }, boq, quote, checks, settings });
 
@@ -97,13 +109,27 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
             <tbody>
               {quote.sections.flatMap((s) => s.lines).concat(quote.lightLines).map((l) => (
                 <tr key={l.code}>
-                  <td>{l.name}{l.vn && <span className="vnTag">VN</span>}{l.section === "light" && (l.smart ? <span className="smtTag">THÔNG MINH</span> : <span className="nrmTag">THƯỜNG</span>)}</td><td>{l.qty}</td>
+                  <td>{l.name}{l.vn && <span className="vnTag">VN</span>}{l.section === "light" && (l.smart ? <span className="smtTag">THÔNG MINH</span> : <span className="nrmTag">THƯỜNG</span>)}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{l.code === "gate_ab" ? l.qty : <>
+                    <input type="number" min={0} value={l.qty} title="Sửa số lượng (lưu riêng cho khách này)" className={ex[okey(l)] != null ? "qtyEdited" : ""} style={{ width: 64 }}
+                      onChange={(e) => setQty(okey(l), Number(e.target.value) || 0)} />
+                    {ex[okey(l)] != null && <button className="ghost" title="Về số lượng theo bản vẽ" style={{ padding: "2px 6px" }} onClick={() => setQty(okey(l), null)}>↺</button>}</>}</td>
                   <td><input type="number" value={l.price} style={{ width: 120 }} onChange={(e) => setItem(l.code.replace(/^prop_/, ""), { price: Number(e.target.value) })} /></td>
                   <td>{l.section === "light" ? "–" : <input type="number" step="1" value={Math.round(l.discount * 100)} style={{ width: 64 }} onChange={(e) => setItem(l.code, { discount: Number(e.target.value) / 100 })} />}{l.section !== "light" && "%"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 8 }}>
+            <select value="" onChange={(e) => { if (e.target.value) setQty(e.target.value, 1); }} style={{ maxWidth: 380 }}>
+              <option value="">＋ Thêm hạng mục ngoài bản vẽ…</option>
+              {addable.map((c) => <option key={c.code} value={okey(c)}>{c.name} – {c.price.toLocaleString("vi-VN")}đ</option>)}
+            </select>
+            {manualKeys.length > 0 && <>
+              <span className="note"><span className="qtyEdited" style={{ padding: "0 6px" }}>ô vàng</span> = số lượng đã sửa tay ({manualKeys.length} mục)</span>
+              <button className="ghost" onClick={() => { if (confirm("Bỏ toàn bộ số lượng sửa tay, quay về số lượng theo bản vẽ?")) onProject({ extras: ex.gate_ab ? { gate_ab: ex.gate_ab } : {} }); }}>↺ Về số theo bản vẽ</button></>}
+          </div>
+          <p className="note">Sửa SL trực tiếp trong bảng (đặt 0 để bỏ hạng mục). Số sửa tay lưu riêng cho khách này và đi theo PDF, Excel, link online, file hồ sơ .json.</p>
           <div className="grid3" style={{ marginTop: 12 }}>
             <label className="f">Phí lắp đặt Smart Home (%)<input type="number" value={settings.installRate * 100} onChange={(e) => onSettings({ ...settings, installRate: Number(e.target.value) / 100 })} /></label>
             <label className="f">Chiết khấu đèn (%)<input type="number" value={settings.lightDiscount * 100} onChange={(e) => onSettings({ ...settings, lightDiscount: Number(e.target.value) / 100 })} /></label>
@@ -122,6 +148,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
               <select value={settings.defaultSpotlight ?? "spotlight_ab"} onChange={(e) => onSettings({ ...settings, defaultSpotlight: e.target.value as Settings["defaultSpotlight"] })}>
                 <option value="spotlight_ab">Spotlight AB – đèn THƯỜNG</option>
                 <option value="athena">Spotlight THÔNG MINH FPT Athena</option>
+                <option value="tube_ab">Đèn ống bơ AB 12W IP65 – đèn THƯỜNG (968.000đ)</option>
               </select></label>
             <label className="f">Gộp công tắc đặt sát nhau
               <select value={settings.mergeAdjacentSwitches ? "1" : "0"} onChange={(e) => onSettings({ ...settings, mergeAdjacentSwitches: e.target.value === "1" })}>

@@ -4,7 +4,7 @@ import { active } from "./merge.ts";
 import { parseCircuits, splitGangs } from "./circuits.ts";
 
 export interface SwitchPos {
-  room: string; gangs: number; circuits: string[]; twoWay: boolean; page: number; ids: string[]; floor: string;
+  room: string; gangs: number; circuits: string[]; twoWay: boolean; page: number; ids: string[]; floor: string; note?: string; estimated?: boolean;
 }
 export interface BOQResult {
   lines: BOQLine[];
@@ -55,7 +55,8 @@ export function buildBOQ(p: Project, s: Settings): BOQResult {
   p.pages.filter((x) => ["lighting", "power"].includes(x.discipline)).forEach((x) => floorSet.add(x.floor || "Tầng 1"));
   dets.forEach((d) => floorSet.add(floorOf(p, d)));
   const floors = [...floorSet].sort();
-  const hubs = Math.max(1, floors.length, p.areaM2 ? Math.ceil(p.areaM2 / s.areaPerHubM2) : 1);
+  // 1 bộ trung tâm cho nhà 1 tầng, 2 bộ cho nhà nhiều tầng (hoặc theo diện tích nếu có); 1 bộ mở rộng sóng ZigBee
+  const hubs = Math.max(1, Math.min(2, floors.length), p.areaM2 ? Math.ceil(p.areaM2 / s.areaPerHubM2) : 1);
 
   // ---- Switches (authoritative: lighting plan)
   const sws = from(p, dets, ["switch"], "lighting");
@@ -66,17 +67,17 @@ export function buildBOQ(p: Project, s: Settings): BOQResult {
     if (used.has(d.id)) continue;
     used.add(d.id);
     const group = [d];
-    if (s.mergeAdjacentSwitches) {
+    if (s.mergeAdjacentSwitches && d.x >= 0 && d.y >= 0 && !d.gangs) {
       for (const e of sws) {
-        if (used.has(e.id) || e.page !== d.page) continue;
+        if (used.has(e.id) || e.page !== d.page || e.x < 0 || e.y < 0 || e.gangs) continue;
         const total = new Set([...group.flatMap((g) => parseCircuits(g.circuits)), ...parseCircuits(e.circuits)]).size;
         if (Math.hypot(e.x - d.x, e.y - d.y) < mergeEps && total <= 4) { group.push(e); used.add(e.id); }
       }
     }
     const circuits = [...new Set(group.flatMap((g) => parseCircuits(g.circuits)))];
-    const n = Math.max(1, circuits.length);
+    const n = Math.max(1, circuits.length || group.reduce((a, g) => a + (g.gangs ?? 0), 0));
     for (const g of splitGangs(n)) {
-      switches.push({ room: d.room || "?", gangs: g, circuits, twoWay: group.some((x) => x.twoWay), page: d.page, ids: group.map((x) => x.id), floor: floorOf(p, d) });
+      switches.push({ room: d.room || "?", gangs: g, circuits, twoWay: group.some((x) => x.twoWay), page: d.page, ids: group.map((x) => x.id), floor: floorOf(p, d), note: group.map((x) => x.note).filter(Boolean).join("; ") || undefined, estimated: !circuits.length });
     }
   }
   for (const g of [1, 2, 3, 4]) {
@@ -143,7 +144,7 @@ export function buildBOQ(p: Project, s: Settings): BOQResult {
   const acFloors = acs.length ? acs.map((d) => floorOf(p, d)) : acRooms.map(() => floors[0] || "Tầng 1");
 
   lines.push({ code: "hub", name: "Bộ trung tâm T950", unit: "Bộ", qty: hubs, rooms: [], detectionIds: [], estimated: false, scope: "smarthome" });
-  lines.push({ code: "zigbee", name: "Mở rộng sóng ZigBee", unit: "Bộ", qty: hubs, rooms: [], detectionIds: [], estimated: false, scope: "smarthome" });
+  lines.push({ code: "zigbee", name: "Mở rộng sóng ZigBee", unit: "Bộ", qty: 1, rooms: [], detectionIds: [], estimated: false, scope: "smarthome" });
 
   // ---- Excluded / reference items
   const exTypes: DeviceType[] = ["socket", "socket_wp", "floor_socket", "data_outlet", "tv_outlet", "wifi_ap", "water_heater", "db_panel"];

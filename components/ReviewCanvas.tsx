@@ -107,6 +107,7 @@ export default function ReviewCanvas({ doc, project, highlight, onEdit }: Props)
                 <input placeholder="Phòng" defaultValue={selected.room} onBlur={(e) => update(selected.id, { room: e.target.value }, "room")} />
                 <input placeholder="Số mạch (vd 13,14,15)" defaultValue={selected.circuits} onBlur={(e) => update(selected.id, { circuits: e.target.value }, "circuits")} />
                 {["downlight", "spotlight"].includes(selected.type) && <label><input type="checkbox" checked={!!selected.proposed} onChange={(e) => update(selected.id, { proposed: e.target.checked }, "proposed")} /> STC đề xuất thêm (không có trên bản vẽ)</label>}
+                {selected.type === "switch" && <label>Số nút (khi bản vẽ không ghi số mạch) <input type="number" min={0} max={4} style={{ width: 56 }} defaultValue={selected.gangs ?? ""} onBlur={(e) => update(selected.id, { gangs: Number(e.target.value) || undefined }, "gangs")} /></label>}
                 {selected.type === "switch" && <label><input type="checkbox" checked={!!selected.twoWay} onChange={(e) => update(selected.id, { twoWay: e.target.checked }, "twoWay")} /> 2 chiều</label>}
                 <div style={{ display: "flex", gap: 6 }}>
                   {selected.status === "removed"

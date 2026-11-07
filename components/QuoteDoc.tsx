@@ -2,6 +2,7 @@
 import "@/app/quote/print/quote.css";
 import type { ReactNode } from "react";
 import type { PrintPayload } from "@/components/QuoteEditor";
+import type { Quote } from "@/lib/core/pricing";
 import { docSo, vnd, vndComma } from "@/lib/core/words";
 import { DEVICE_LABEL } from "@/lib/core/types";
 
@@ -25,6 +26,9 @@ const Card = ({ ic, t, children }: { ic: string; t: React.ReactNode; children: R
   <div className="card"><div className="ct"><img src={A + ic} alt="" />{t}</div><div className="cb">{children}</div></div>;
 
 /** The 7-page STC CROP quote (+ optional proposal drawing pages). Shared by /quote/print and the public link /q/[id]. */
+/** công tắc cửa cuốn/cổng không đi kèm bộ cổng AB Gate */
+function gateSwOnly(q: Quote) { const ls = q.sections.flatMap((s) => s.lines); return ls.some((l) => l.code === "gate_ab") ? 0 : ls.filter((l) => l.code === "gate_sw").reduce((a, l) => a + l.qty, 0); }
+
 export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: ReactNode }) {
   const { project: P, boq, quote: q, checks } = d;
   const showProp = d.settings.includeProposal !== false;
@@ -32,8 +36,15 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   const propLine = q.lightLines.find((l) => l.proposed);
   const baseLine = q.lightLines.find((l) => !l.proposed);
   const kh = P.customer, dc = P.address;
-  const swN = boq.switches.length, camN = boq.cameras.length, curN = boq.curtains.length, railM = boq.curtains.reduce((a, c) => a + c.meters, 0);
-  const irN = boq.lines.find((l) => l.code === "ir")?.qty ?? 0;
+  // số lượng lấy từ báo giá (đã gồm số sửa tay), bố trí lấy từ bản vẽ
+  const qn = (...codes: string[]) => q.sections.flatMap((s) => s.lines).filter((l) => codes.includes(l.code)).reduce((a, l) => a + l.qty, 0);
+  const swN = boq.switches.length, swQ = qn("sw1", "sw2", "sw3", "sw4");
+  const camN = qn("cam_in", "cam_out"), curN = qn("curtain_motor"), railM = qn("rail");
+  const irN = qn("ir"), hubN = qn("hub", "hub_pb650"), zbN = qn("zigbee"), doorN = gateSwOnly(q);
+  const irRows = Array.from({ length: irN }, (_, i) => ({ room: boq.acRooms[i] ?? `Điều hòa ${i + 1}`, floor: boq.acFloors?.[i] ?? boq.acFloors?.[0] ?? "Tầng 1" }));
+  const camRows = [...boq.cameras.map((c) => ({ floor: c.floor || "Tầng 1", room: c.room || "", out: c.type === "camera_outdoor" }))];
+  for (const [code, out] of [["cam_out", true], ["cam_in", false]] as const) { let extra = qn(code) - camRows.filter((c) => c.out === out).length; while (extra-- > 0) camRows.push({ floor: "", room: "vị trí bổ sung (thống nhất khi khảo sát)", out }); }
+  const camList = camRows.filter((c, i) => camRows.slice(0, i + 1).filter((x) => x.out === c.out).length <= qn(c.out ? "cam_out" : "cam_in"));
   const hubName = q.sections.flatMap((s) => s.lines).find((l) => l.code === "hub" || l.code === "hub_pb650")?.name.replace(/^Bộ điều khiển trung tâm /, "") ?? "FPT T950";
   const gateLine = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_ab");
   const gateN = gateLine?.qty ?? 0;
@@ -49,7 +60,10 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   </>;
   const excl = boq.excluded.filter((x) => !/Ổ|Tủ|Wifi|RJ45|TV|Bình/.test(x.name)).map((x) => `${x.name.toLowerCase()} ${x.unit === "m" ? `(~${x.qty}m)` : x.qty}`).join(", ");
   const warns = checks.filter((c) => c.severity !== "info");
-  const camsOut = boq.cameras.filter((c) => c.type === "camera_outdoor").length;
+  const camsOut = qn("cam_out");
+  const roomsN = rooms.reduce((a, l) => a + l.qty, 0);
+  const codeOfType = (t: string) => (t === "spotlight" ? d.settings.defaultSpotlight ?? "spotlight_ab" : d.settings.defaultDownlight);
+  const nameOfType = (t: string) => q.lightLines.find((l) => l.code === codeOfType(t))?.name ?? baseLine?.name ?? DEVICE_LABEL[t as keyof typeof DEVICE_LABEL];
   let n = 0;
 
   return (
@@ -62,7 +76,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         <Info kh={kh} dc={dc} r1={<><b>Ngày lập báo giá:</b> {P.date}</>} r2={<><b>Hiệu lực báo giá:</b> 30 ngày kể từ ngày lập</>} />
         <table className="t sum"><thead><tr><th style={{ width: "5%" }}>STT</th><th>Hạng mục báo giá</th><th style={{ width: "13%" }}>Thiết bị niêm yết (đ)</th><th style={{ width: "12%" }}>Giảm giá (đ)</th><th style={{ width: "11%" }}>Lắp đặt (đ)</th><th style={{ width: "13%" }}>Tổng cộng (đ)</th><th style={{ width: "9%" }}>Chi tiết</th></tr></thead>
           <tbody>
-            <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swN} công tắc cảm ứng, bộ trung tâm {hubName} + mở rộng sóng ZigBee{irN ? `, ${irN} bộ IR điều hòa` : ""}{gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
+            <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swQ} công tắc cảm ứng, {hubN > 1 ? `${hubN} ` : ""}bộ trung tâm {hubName}{zbN ? " + mở rộng sóng ZigBee" : ""}{doorN ? `, ${doorN} công tắc cửa cuốn` : ""}{irN ? `, ${irN} bộ IR điều hòa` : ""}{gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
               <td className="r">{vnd(q.niem)}</td><td className="r">{vnd(q.giam)}</td><td className="r">{vnd(q.lapDat)}</td><td className="r b">{vnd(q.shTotal)}</td><td className="c">Phần 1<br />(4 trang)</td></tr>
             <tr><td className="c">2</td><td><div className="it">{lightTitle}</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng){plainN > 0 ? ". Đèn thường: bật/tắt theo mạch qua công tắc FPT, không chỉnh sáng/màu từng đèn." : "."}</div></td>
               <td className="r">{vnd(q.lNiem)}</td><td className="r">{vnd(-q.lCk)}</td><td className="r">{vnd(q.lInstall)}{!q.lInstall && <><br /><span className="gr sm">(thợ điện lắp)</span></>}</td><td className="r b">{vnd(q.lTotal)}</td><td className="c">Phần 2<br />(2 trang)</td></tr>
@@ -160,28 +174,32 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
             <tr key={fl} className="sr"><td colSpan={5}>KHU VỰC: {fl.toUpperCase()}</td></tr>,
             ...boq.switches.filter((s) => s.floor === fl).map((s, i) => (
               <tr key={fl + i}><td className="c">{boq.switches.indexOf(s) + 1}</td><td className="c">{s.floor}</td><td><b>{s.room}</b></td>
-                <td className="c"><span className={`bd b${s.gangs}`}>Công tắc {s.gangs} nút</span></td><td>Line {s.circuits.join(",")}{s.twoWay ? " (2 chiều)" : ""}</td></tr>)),
+                <td className="c"><span className={`bd b${s.gangs}`}>Công tắc {s.gangs} nút</span></td><td>{s.circuits.length ? `Line ${s.circuits.join(",")}` : (s.note || "Nhóm đèn " + s.room)}{s.twoWay ? " (2 chiều)" : ""}</td></tr>)),
           ])}</tbody></table>
         {checks.filter((c) => c.code === "C1" || c.code === "C2").map((c, i) => <div key={i} className="rn">Ghi chú: {c.message}</div>)}
+        {boq.switches.some((s) => s.estimated) && <div className="rn">Ghi chú: Bản vẽ chỉ thể hiện vị trí công tắc, chưa ghi số mạch – số nút được STC ước tính theo nhóm đèn, sẽ chốt lại với chủ nhà/thợ điện trước khi đặt hàng.</div>}
+        {swQ !== swN && <div className="rn">Ghi chú: Số lượng công tắc trong bảng dự toán ({swQ} bộ) đã điều chỉnh theo trao đổi với chủ nhà, khác số vị trí trên bản vẽ ({swN}).</div>}
         <Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 3 / 4" /></section>
 
       {/* 5. PHỤ LỤC */}
       <section className="page"><Head right="BÀN GIAO & KÝ KẾT | Trang 4/4 (Mặt bằng & Ký kết)" />
-        <h1 className="h1s">PHỤ LỤC BỐ TRÍ RÈM TỰ ĐỘNG, ĐIỀU HÒA, CAMERA &amp; CAM KẾT DỊCH VỤ</h1>
-        <div className="two">
-          <div className="pn"><div className="pt">BỐ TRÍ RÈM VẢI ĐỘNG CƠ ({curN} ĐC - {railM}M RAY)</div>
+        <h1 className="h1s">PHỤ LỤC BỐ TRÍ {[curN ? "RÈM TỰ ĐỘNG" : "", doorN ? "CỬA CUỐN" : "", "ĐIỀU HÒA", camN ? "CAMERA" : ""].filter(Boolean).join(", ")} &amp; CAM KẾT DỊCH VỤ</h1>
+        <div className={curN && camN ? "two" : ""}>
+          {curN > 0 && <>          <div className="pn"><div className="pt">BỐ TRÍ RÈM VẢI ĐỘNG CƠ ({curN} ĐC - {railM}M RAY)</div>
             <table className="t sm2"><thead><tr><th>STT</th><th>Tầng</th><th>Phòng</th><th>Công Tắc</th><th>Động Cơ</th><th>KT Ngang</th><th>Bi Định Hình</th></tr></thead><tbody>
               {boq.curtains.map((c, i) => <tr key={i}><td className="c">{i + 1}</td><td>{c.floor}</td><td>{c.room}</td><td className="c">1</td><td className="c"><b>1</b></td><td className="c">{String(c.meters).replace(".", ",")} m</td><td className="c">7cm</td></tr>)}
               <tr className="tot"><td colSpan={3}>TỔNG RÈM VẢI</td><td className="c">{curN}</td><td className="c">{curN}</td><td colSpan={2}>Tổng {railM} m ray nhôm</td></tr></tbody></table>
-            <div className="sm rn" style={{ padding: "4px 8px" }}>KT ngang ước tính theo bản vẽ – đo lại thực tế trước khi sản xuất ray.</div></div>
-          <div className="pn"><div className="pt">BỐ TRÍ CAMERA QUAN SÁT AI ({camN} BỘ)</div>
+            <div className="sm rn" style={{ padding: "4px 8px" }}>KT ngang ước tính theo bản vẽ – đo lại thực tế trước khi sản xuất ray.</div></div></>}
+          {camN > 0 && <>          <div className="pn"><div className="pt">BỐ TRÍ CAMERA QUAN SÁT AI ({camN} BỘ)</div>
             <table className="t sm2"><thead><tr><th>STT</th><th>Tầng</th><th>Vị Trí</th><th>Vật Tư</th><th>SL</th><th>Công Năng</th></tr></thead><tbody>
-              {boq.cameras.map((c, i) => <tr key={c.id}><td className="c">{i + 1}</td><td>{c.floor || "Tầng 1"}</td><td>Camera {i + 1}</td><td className="nw"><b>{c.type === "camera_outdoor" ? "FPT Camera SE 2S" : "FPT Camera SE 3"}</b></td><td className="c"><b>1</b></td><td>Quan sát {(c.room || "").toLowerCase()}</td></tr>)}</tbody></table></div>
+              {camList.map((c, i) => <tr key={i}><td className="c">{i + 1}</td><td>{c.floor}</td><td>Camera {i + 1}</td><td className="nw"><b>{c.out ? "FPT Camera SE 2S" : "FPT Camera SE 3"}</b></td><td className="c"><b>1</b></td><td>Quan sát {c.room.toLowerCase()}</td></tr>)}</tbody></table></div></>}
         </div>
-        <div className="pn"><div className="pt">BỐ TRÍ ĐIỀU KHIỂN ĐIỀU HÒA THÔNG MINH IR ({irN} BỘ) &amp; BỘ TRUNG TÂM {hubName.toUpperCase()} ({boq.hubs} BỘ)</div>
+        <div className="pn"><div className="pt">BỐ TRÍ ĐIỀU KHIỂN ĐIỀU HÒA THÔNG MINH IR ({irN} BỘ) &amp; BỘ TRUNG TÂM {hubName.toUpperCase()} ({hubN} BỘ)</div>
           <table className="t sm2"><thead><tr><th>STT</th><th>Tầng</th><th>Vị Trí</th><th>Vật Tư</th><th>SL</th><th>Công Năng</th></tr></thead><tbody>
-            {boq.acRooms.map((r, i) => <tr key={i}><td className="c">{i + 1}</td><td>{boq.acFloors?.[i] ?? "Tầng 1"}</td><td>{r}</td><td><b>Bộ điều khiển IR IEWG011</b></td><td className="c"><b>1</b></td><td>Điều khiển điều hòa {r}, hẹn giờ, tự động tắt khi không có người</td></tr>)}
-            <tr><td className="c">{boq.acRooms.length + 1}</td><td>{boq.floors.join(", ") || "Tầng 1"}</td><td>Phòng khách</td><td><b>Bộ trung tâm {hubName} + mở rộng sóng ZigBee 3.0</b></td><td className="c"><b>{boq.hubs * 2}</b></td><td>Trung tâm điều khiển &amp; phủ sóng toàn bộ hệ thống</td></tr></tbody></table></div>
+            {irRows.map((r, i) => <tr key={i}><td className="c">{i + 1}</td><td>{r.floor}</td><td>{r.room}</td><td><b>Bộ điều khiển IR IEWG011</b></td><td className="c"><b>1</b></td><td>Điều khiển điều hòa {r.room}, hẹn giờ, tự động tắt khi không có người</td></tr>)}
+            {hubN > 0 && <tr><td className="c">{irN + 1}</td><td>{boq.floors.join(", ") || "Tầng 1"}</td><td>{hubN > 1 ? "Mỗi khu vực 1 bộ" : "Phòng khách"}</td><td><b>Bộ trung tâm {hubName}</b></td><td className="c"><b>{hubN}</b></td><td>Trung tâm điều khiển toàn bộ hệ thống</td></tr>}
+            {zbN > 0 && <tr><td className="c">{irN + 2}</td><td>{boq.floors.join(", ") || "Tầng 1"}</td><td>Vùng sóng yếu</td><td><b>Mở rộng sóng ZigBee 3.0</b></td><td className="c"><b>{zbN}</b></td><td>Phủ sóng ổn định cho các tầng/khu xa trung tâm</td></tr>}
+            {doorN > 0 && <tr><td className="c">{irN + 3}</td><td>{boq.floors[0] ?? "Tầng 1"}</td><td>Cửa cuốn / cổng</td><td><b>Công tắc điều khiển cửa cuốn</b></td><td className="c"><b>{doorN}</b></td><td>Đóng/mở/dừng cửa cuốn qua app, hẹn giờ, cảnh báo quên đóng</td></tr>}</tbody></table></div>
         <div className="box note"><div className="nt">QUY CHUẨN THI CÔNG, DỊCH VỤ &amp; ĐIỀU KHOẢN THƯƠNG MẠI CỦA CÔNG TY TNHH ĐẦU TƯ VÀ CÔNG NGHỆ STC:</div><ul>
           <li><b>Phạm vi dịch vụ:</b> Lắp đặt toàn bộ thiết bị điện thông minh, cài đặt vào Bộ điều khiển trung tâm, phân phòng và thiết lập kịch bản tự động hóa cho từng phòng.</li>
           <li><b>Phần mềm &amp; Bảo hành:</b> Miễn phí phần mềm FPT Life trọn đời. Bảo hành chính hãng 24 tháng tận nơi.</li>
@@ -215,10 +233,10 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
 
       {/* 7. BỐ TRÍ ĐÈN */}
       <section className="page xl">
-        <table className="xtb lt"><thead><tr><th colSpan={5} className="lth">BỐ TRÍ ĐÈN THÔNG MINH ÂM TRẦN</th></tr><tr className="lh"><th>STT</th><th>TẦNG</th><th>VỊ TRÍ</th><th>SỐ LƯỢNG</th><th>CÔNG NĂNG</th></tr></thead>
-          <tbody>{rooms.map((l, i) => <tr key={i} className={l.proposed ? "prop" : ""}><td className="c">{i + 1}</td><td className="c">{l.floor}</td><td>{l.room}{l.proposed && <b className="or"> (đề xuất thêm)</b>}</td><td className="r">{l.qty}</td><td>{l.proposed ? propLine?.name ?? "Spotlight đề xuất" : baseLine?.name ?? DEVICE_LABEL[l.type]}</td></tr>)}
-            <tr className="xy"><td colSpan={3} className="c">TỔNG CỘNG</td><td className="r">{lightN}</td><td /></tr></tbody></table>
-        <div style={{ fontSize: 10, marginTop: 6 }}>Tổng cộng: {lightN} bộ đèn (khớp bản vẽ chiếu sáng).</div>
+        <table className="xtb lt"><thead><tr><th colSpan={5} className="lth">{smartN ? (plainN ? "BỐ TRÍ ĐÈN THEO PHÒNG (THÔNG MINH FPT + ĐÈN THƯỜNG AB)" : "BỐ TRÍ ĐÈN THÔNG MINH ÂM TRẦN") : "BỐ TRÍ ĐÈN THEO PHÒNG – ĐÈN LED THƯỜNG AB"}</th></tr><tr className="lh"><th>STT</th><th>TẦNG</th><th>VỊ TRÍ</th><th>SỐ LƯỢNG</th><th>CÔNG NĂNG</th></tr></thead>
+          <tbody>{rooms.map((l, i) => <tr key={i} className={l.proposed ? "prop" : ""}><td className="c">{i + 1}</td><td className="c">{l.floor}</td><td>{l.room}{l.proposed && <b className="or"> (đề xuất thêm)</b>}</td><td className="r">{l.qty}</td><td>{l.proposed ? propLine?.name ?? "Spotlight đề xuất" : nameOfType(l.type)}</td></tr>)}
+            <tr className="xy"><td colSpan={3} className="c">TỔNG CỘNG</td><td className="r">{roomsN}</td><td /></tr></tbody></table>
+        <div style={{ fontSize: 10, marginTop: 6 }}>Tổng cộng: {roomsN} bộ đèn theo bản vẽ chiếu sáng.{roomsN !== lightN && <b className="xred"> Bảng dự toán tính {lightN} bộ (đã điều chỉnh theo trao đổi với chủ nhà).</b>}</div>
         {excl && <div className="xred" style={{ fontSize: 10 }}>Ghi chú: Chưa bao gồm {excl}.</div>}
         <div className="xft"><span>{CO} – Hotline 0823 047 047</span><span>Trang 2</span><span>Báo giá - FPT SMART HOME</span></div></section>
 

@@ -33,7 +33,8 @@ export function computeQuote(boq: BOQResult, catalog: CatalogItem[], s: Settings
   for (const key of ["lighting_ctrl", "gate", "curtain", "camera"] as const) {
     const lines = catalog.filter((c) => c.section === key).map((c) => mk(c.code, shQty[c.code] ?? 0)).filter((l) => l.qty > 0 && l.price > 0);
     if (!lines.length) continue;
-    sections.push({ key, title: SECTIONS[key], lines, total: lines.reduce((a, l) => a + l.total, 0), listTotal: lines.reduce((a, l) => a + l.listTotal, 0) });
+    const title = key === "gate" && !lines.some((l) => l.code === "gate_ab") ? "II. Giải pháp điều khiển cửa cuốn / cổng" : SECTIONS[key];
+    sections.push({ key, title, lines, total: lines.reduce((a, l) => a + l.total, 0), listTotal: lines.reduce((a, l) => a + l.listTotal, 0) });
   }
   // renumber section roman numerals in order of appearance
   const roman = ["I", "II", "III", "IV", "V"];

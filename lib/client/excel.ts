@@ -53,7 +53,7 @@ export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settin
   }
   r++;
   secRow(bt, r, "VỊ TRÍ CÔNG TẮC", 6); r++;
-  boq.switches.forEach((sw, k) => { bt.getRow(r).values = [k + 1, sw.room, "Vị trí", 1, `Công tắc ${sw.gangs} nút – Line ${sw.circuits.join(",")}${sw.twoWay ? " (2 chiều)" : ""}`, sw.floor]; r++; });
+  boq.switches.forEach((sw, k) => { bt.getRow(r).values = [k + 1, sw.room, "Vị trí", 1, `Công tắc ${sw.gangs} nút – ${sw.circuits.length ? "Line " + sw.circuits.join(",") : (sw.note || "số nút ước tính")}${sw.twoWay ? " (2 chiều)" : ""}`, sw.floor]; r++; });
   r++;
   if (checks.length) {
     secRow(bt, r, "CẢNH BÁO ĐỐI SOÁT CHÉO", 6); r++;
@@ -71,7 +71,8 @@ export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settin
     const sr = r; secRows.push(sr); secRow(sh, r, sec.title, 9); sh.mergeCells(r, 1, r, 7); r++;
     for (const l of sec.lines) {
       n++;
-      const br = rowOf[linkCode[l.code]];
+      const manual = p.extras?.[l.code === "hub_pb650" ? "hub" : l.code] != null; // số sửa tay → ghi số, không link Bóc tách
+      const br = manual ? undefined : rowOf[linkCode[l.code]];
       sh.getRow(r).values = [n, l.name, l.unit, br ? { formula: `'Bóc tách'!D${br}` } : l.qty, l.price, l.discount,
         { formula: `ROUND(E${r}*(1-F${r}),0)` }, { formula: `G${r}*D${r}` }, { formula: `E${r}*D${r}` }];
       sh.getCell(r, 4).font = font({ color: br ? GREEN : BLUE });
@@ -112,7 +113,7 @@ export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settin
   hrow(cs, 8, ["STT", "Thiết bị", "ĐVT", "SL", "Đơn giá (đ)", "Thành tiền (đ)"]);
   r = 9;
   q.lightLines.forEach((l, k) => {
-    const br = rowOf[l.code === "spotlight_ab" ? "spotlight" : "downlight"];
+    const br = p.extras?.[`light_${l.code}`] != null || l.proposed ? undefined : rowOf[l.code === (s.defaultSpotlight ?? "spotlight_ab") ? "spotlight" : "downlight"];
     cs.getRow(r).values = [k + 1, l.name, l.unit, br && q.lightLines.length === 1 ? { formula: `'Bóc tách'!D${br}` } : l.qty, l.price, { formula: `D${r}*E${r}` }];
     cs.getCell(r, 5).font = font({ color: BLUE }); [5, 6].forEach((c) => (cs.getCell(r, c).numFmt = NUM)); r++;
   });

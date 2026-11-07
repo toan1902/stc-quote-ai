@@ -220,3 +220,26 @@ test("FPT retail prices: IR 759k, AOK motor 3.3M, gate switch 2.079M; hub price 
   const pbl = pb.find((l) => l.code === "hub_pb650")!;
   assert.equal(pbl.price, 3900000); assert.equal(pbl.qty, t950.qty);
 });
+
+test("Anh Tài (3 tầng, công tắc không toạ độ, số nút ước tính): đúng số lượng & tổng = báo giá PDF", () => {
+  const t = JSON.parse(readFileSync(new URL("./fixtures/anh-tai.takeoff.json", import.meta.url), "utf8")) as TakeoffJSON;
+  const p = importTakeoff(t, "07/11/2026");
+  const s = { ...DEFAULT_SETTINGS, ...(p.options ?? {}) };
+  const b = buildBOQ(p, s);
+  assert.deepEqual([1, 2, 3, 4].map((g) => qtyOf(b, `sw${g}`)), [3, 8, 7, 2]);
+  assert.equal(qtyOf(b, "hub"), 2); assert.equal(qtyOf(b, "zigbee"), 1);
+  assert.equal(qtyOf(b, "ir"), 3); assert.equal(qtyOf(b, "cam_out"), 1);
+  assert.equal(crossCheck(p).filter((c) => c.severity !== "info").length, 0);
+  const q = computeQuote(b, DEFAULT_CATALOG, s, p.extras as Record<string, number>);
+  assert.deepEqual(q.lightLines.map((l) => [l.code, l.qty]), [["downlight_ab", 91], ["tube_ab", 21]]);
+  assert.ok(q.sections.flatMap((x) => x.lines).some((l) => l.code === "gate_sw" && l.qty === 1));
+  assert.equal(q.grandTotal, 77784150);
+});
+
+test("SL sửa tay: ghi đè số theo bản vẽ, 0 = bỏ hạng mục, thêm hạng mục ngoài bản vẽ", () => {
+  const p = load(); const b = buildBOQ(p, DEFAULT_SETTINGS);
+  const q = computeQuote(b, DEFAULT_CATALOG, DEFAULT_SETTINGS, { sw3: 1, cam_in: 0, gate_sw: 2, light_downlight_ab: 70 });
+  const ln = (c: string) => q.sections.flatMap((x) => x.lines).find((l) => l.code === c);
+  assert.equal(ln("sw3")?.qty, 1); assert.equal(ln("cam_in"), undefined); assert.equal(ln("gate_sw")?.qty, 2);
+  assert.equal(q.lightLines.find((l) => l.code === "downlight_ab")?.qty, 70);
+});
