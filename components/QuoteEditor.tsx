@@ -113,6 +113,10 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
                 <option value="athena">Spotlight THÔNG MINH FPT Athena (869.000đ)</option>
                 <option value="spotlight_ab">Spotlight AB – đèn THƯỜNG (588.000đ)</option>
               </select></label>
+            <label className="f">Bộ điều khiển trung tâm (mã hàng)
+              <select value={settings.hubModel ?? "hub"} onChange={(e) => onSettings({ ...settings, hubModel: e.target.value as Settings["hubModel"] })}>
+                {catalog.filter((c) => c.code === "hub" || c.code === "hub_pb650").map((c) => <option key={c.code} value={c.code}>{c.name.replace("Bộ điều khiển trung tâm ", "")} – {c.price.toLocaleString("vi-VN")}đ</option>)}
+              </select></label>
             <label className="f">Spotlight trên bản vẽ báo giá bằng
               <select value={settings.defaultSpotlight ?? "spotlight_ab"} onChange={(e) => onSettings({ ...settings, defaultSpotlight: e.target.value as Settings["defaultSpotlight"] })}>
                 <option value="spotlight_ab">Spotlight AB – đèn THƯỜNG</option>
