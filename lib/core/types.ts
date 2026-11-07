@@ -87,6 +87,7 @@ export interface Settings {
   lightInstall: number;         // lighting install %
   defaultDownlight: "downlight_ab" | "downlight_fpt" | "athena" | "spotlight_ab";
   defaultSpotlight: "spotlight_ab" | "athena";
+  hubModel: "hub" | "hub_pb650";   // mã bộ trung tâm: T950 hoặc Play Box 650 (giá theo mã)
   railPerCurtainM: number;      // default rail metres per curtain point
   mergeAdjacentSwitches: boolean;
   areaPerHubM2: number;
