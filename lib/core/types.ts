@@ -78,17 +78,19 @@ export interface CatalogItem {
   salePrice?: number;           // giá bán chốt sẵn (thay cho % giảm)
   freeInstall?: boolean;        // miễn phí lắp đặt khi chọn hệ sinh thái FPT Smart Home
   kit?: string; warn?: string; bigImg?: boolean;
+  smart?: boolean;              // đèn thông minh FPT (true) / đèn thường (false)
 }
 
 export interface Settings {
   installRate: number;          // smart home install % of list price
   lightDiscount: number;        // lighting discount
   lightInstall: number;         // lighting install %
-  defaultDownlight: "downlight_ab" | "athena" | "spotlight_ab";
+  defaultDownlight: "downlight_ab" | "downlight_fpt" | "athena" | "spotlight_ab";
+  defaultSpotlight: "spotlight_ab" | "athena";
   railPerCurtainM: number;      // default rail metres per curtain point
   mergeAdjacentSwitches: boolean;
   areaPerHubM2: number;
-  proposalSpot: "athena" | "spotlight_ab";  // loại đèn cho spotlight đề xuất
+  proposalSpot: "athena" | "spotlight_ab" | "downlight_fpt";  // loại đèn cho spotlight đề xuất
   includeProposal: boolean;                  // đưa đề xuất (giá + trang bản vẽ) vào báo giá
 }
 
