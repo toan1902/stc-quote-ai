@@ -243,3 +243,19 @@ test("SL sửa tay: ghi đè số theo bản vẽ, 0 = bỏ hạng mục, thêm 
   assert.equal(ln("sw3")?.qty, 1); assert.equal(ln("cam_in"), undefined); assert.equal(ln("gate_sw")?.qty, 2);
   assert.equal(q.lightLines.find((l) => l.code === "downlight_ab")?.qty, 70);
 });
+
+test("Phân loại hồ sơ BVTC đầy đủ: khung tên 'kiến trúc' lặp lại không làm mất trang điện; trang danh mục bị bỏ", async () => {
+  const { classifyByText, stripBoilerplate } = await import("../lib/core/classify.ts");
+  const box = ["BVTC KIẾN TRÚC ĐIỆN NƯỚC", "NHÀ Ở TƯ NHÂN ANH TÀI", "KTS. PHAN CÔNG THÔNG"];
+  const pages = [
+    ["DANH SÁCH BẢN VẼ", "MẶT BẰNG KIẾN TRÚC TẦNG 1", "MẶT BẰNG CẤP ĐIỆN TẦNG 1", "CẤP ĐIỆN TRẦN ĐÈN TẦNG 1", "MẶT BẰNG CẤP NƯỚC TẦNG 1", "MẶT BẰNG THOÁT NƯỚC TẦNG 1"],
+    ["MẶT BẰNG KIẾN TRÚC TẦNG 1", "PHỐI CẢNH"],
+    ["MẶT BẰNG CẤP ĐIỆN", "TẦNG HẦM", "CAMERA", "CB MÁY LẠNH"],
+    ["BẢNG KÍ HIỆU", "CẤP ĐIỆN TRẦN ĐÈN", "ĐÈN TRANG TRÍ CẦU THANG", "PHỐI CẢNH 3D", "CẤP ĐIỆN TRẦN ĐÈN TẦNG 2"],
+    ["KÍCH THƯỚC BÓNG ĐÈN TẦNG 2", "CẤP ĐIỆN TRẦN ĐÈN"],
+    ["MẶT BẰNG CẤP NƯỚC TẦNG 2"],
+  ].map((p) => [...p, ...box]);
+  const r = stripBoilerplate(pages).map((t) => classifyByText(t));
+  assert.deepEqual(r.map((x) => x?.discipline), ["other", "other", "power", "lighting", "other", "other"]);
+  assert.equal(r[2]?.floor, "Tầng hầm"); assert.equal(r[3]?.floor, "Tầng 2");
+});

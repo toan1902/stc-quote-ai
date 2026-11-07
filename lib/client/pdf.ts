@@ -1,4 +1,5 @@
 "use client";
+import { mergeRuns } from "../core/classify";
 import type { Rect } from "../core/types";
 
 type PdfJs = typeof import("pdfjs-dist");
@@ -60,10 +61,15 @@ export function drawMarkers(src: HTMLCanvasElement, marks: { id: string; x: numb
 
 /** Text layer of a page (title block of CAD exports often keeps real text). Empty for curve-only PDFs. */
 export async function pageText(doc: PdfDoc, pageNo: number): Promise<string> {
+  return (await pageItems(doc, pageNo)).join(" ");
+}
+
+/** các đoạn chữ của 1 trang (để lọc chữ khung tên lặp lại giữa các trang) */
+export async function pageItems(doc: PdfDoc, pageNo: number): Promise<string[]> {
   try {
     const tc = await (await doc.getPage(pageNo)).getTextContent();
-    return tc.items.map((i) => ("str" in i ? i.str : "")).join(" ");
-  } catch { return ""; }
+    return mergeRuns(tc.items.flatMap((i) => ("str" in i ? [{ str: i.str, x: i.transform[4], y: i.transform[5], w: i.width, h: i.height || Math.hypot(i.transform[2], i.transform[3]) }] : [])));
+  } catch { return []; }
 }
 
 /** Contact sheet: up to 9 page thumbnails in a 3x3 grid with big red page numbers (1 AI call instead of 9). */

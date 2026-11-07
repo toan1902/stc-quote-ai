@@ -3,8 +3,8 @@ import type { Detection, Discipline, LegendSymbol, Page, Project, Rect, RoomLabe
 import { planTiles, pageToCrop } from "../core/tiling";
 import { itemsToDetections, roomsFromModel, applyVerify, dedupe, type ModelItem, type VerifyResult } from "../core/merge";
 import { assignRooms } from "../core/rooms";
-import { contactSheet, drawMarkers, pageAspect, pageText, renderRegion, toJpeg, type PdfDoc } from "./pdf";
-import { classifyByText, ELECTRICAL } from "../core/classify";
+import { contactSheet, drawMarkers, pageAspect, pageItems, renderRegion, toJpeg, type PdfDoc } from "./pdf";
+import { classifyByText, stripBoilerplate, ELECTRICAL } from "../core/classify";
 
 export type Log = (msg: string, frac?: number) => void;
 const FULL: Rect = { x: 0, y: 0, w: 1, h: 1 };
@@ -36,8 +36,11 @@ export async function analyseStructure(doc: PdfDoc, project: Project, log: Log, 
   const n = doc.numPages;
   const pages: Page[] = [];
   const unknown: number[] = [];
+  const items: string[][] = [];
+  for (let i = 1; i <= n; i++) items.push(await pageItems(doc, i));
+  const texts = stripBoilerplate(items);
   for (let i = 1; i <= n; i++) {
-    const c = classifyByText(await pageText(doc, i));
+    const c = classifyByText(texts[i - 1]);
     if (c) pages.push({ index: i, discipline: c.discipline, floor: c.floor, title: "(đọc từ chữ trong PDF)", confidence: 0.95, analysed: false });
     else unknown.push(i);
   }
@@ -54,7 +57,8 @@ export async function analyseStructure(doc: PdfDoc, project: Project, log: Log, 
   }
   pages.sort((a, b) => a.index - b.index);
   const skipped = pages.filter((p) => !ELECTRICAL.includes(p.discipline)).length;
-  log(`Bỏ qua ${skipped} trang không liên quan điện (cấp thoát nước, kết cấu, bìa…)`, 0.72);
+  const keep = pages.filter((p) => ELECTRICAL.includes(p.discipline));
+  log(`Bỏ qua ${skipped} trang không liên quan điện (kiến trúc, kết cấu, cấp thoát nước, bìa…). Giữ lại ${keep.length} trang: ${keep.map((p) => `${p.index} (${p.discipline} – ${p.floor})`).join(", ") || "không có"}`, 0.72);
   let legend: LegendSymbol[] = [];
   for (const p of pages.filter((x) => x.discipline === "legend")) {
     log(`Đọc bảng ký hiệu (trang ${p.index})`, 0.8);

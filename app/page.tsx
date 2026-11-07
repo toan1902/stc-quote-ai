@@ -105,7 +105,7 @@ export default function Home() {
     if (f.size > 50 * 1024 * 1024) { setError("File vượt 50 MB – hãy tách bớt trang (chỉ cần các trang điện)."); return; }
     setFile(f);
     if (!form.customer) setForm((x) => ({ ...x, customer: guessCustomer(f.name) }));
-    try { const d = await loadPdf(f); if (d.numPages > 50) throw new Error("Tối đa 50 trang"); setDoc(d); }
+    try { const d = await loadPdf(f); if (d.numPages > 300) throw new Error("Tối đa 300 trang – hãy tách bớt phần không liên quan"); setDoc(d); }
     catch (e) { setError(`Không đọc được PDF: ${(e as Error).message}`); setDoc(null); }
   };
 
@@ -187,7 +187,7 @@ export default function Home() {
               <h2>Bản vẽ điện / MEP (PDF)</h2>
               <label className={`drop ${file ? "has" : ""}`}>
                 <input type="file" accept="application/pdf" hidden onChange={(e) => e.target.files?.[0] && pick(e.target.files[0])} />
-                {file ? <><b>{file.name}</b><div className="note">{doc ? `${doc.numPages} trang` : "Đang đọc…"}</div></> : <>Kéo thả hoặc bấm để chọn file PDF bản vẽ<div className="note">Tối đa 50 trang · không lưu trên máy chủ</div></>}
+                {file ? <><b>{file.name}</b><div className="note">{doc ? `${doc.numPages} trang` : "Đang đọc…"}</div></> : <>Kéo thả hoặc bấm để chọn file PDF bản vẽ<div className="note">Hồ sơ đầy đủ (kiến trúc + điện + nước) tới 300 trang – app tự bỏ trang không liên quan điện · không lưu trên máy chủ</div></>}
               </label>
               <div className="grid2" style={{ marginTop: 14 }}>
                 <label className="f">Khách hàng<input value={form.customer} onChange={(e) => setForm({ ...form, customer: e.target.value })} placeholder="Anh Cường" /></label>
