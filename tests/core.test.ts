@@ -137,3 +137,15 @@ test("multi-floor: curtains and AC keep their floor", () => {
   assert.equal(b.acFloors[b.acRooms.indexOf("P.Ngủ 4")], "Tầng 2");
   assert.ok(b.curtains.every((c) => c.floor === "Tầng 1"));
 });
+
+test("classify by PDF text: keep electrical sheets, skip water/structure", async () => {
+  const { classifyByText, floorOf } = await import("../lib/core/classify.ts");
+  assert.equal(classifyByText("MẶT BẰNG CHIẾU SÁNG TẦNG 1 ME-06")?.discipline, "lighting");
+  assert.equal(classifyByText("MAT BANG CAP NGUON O CAM")?.discipline, "power");
+  assert.equal(classifyByText("Mặt bằng điện nhẹ - camera, mạng")?.discipline, "low_voltage");
+  assert.equal(classifyByText("MẶT BẰNG CẤP NƯỚC TẦNG 1")?.discipline, "other");
+  assert.equal(classifyByText("SƠ ĐỒ NGUYÊN LÝ TỦ ĐIỆN DB-L1")?.discipline, "panel");
+  assert.equal(classifyByText("BẢNG KÝ HIỆU CHUNG")?.discipline, "legend");
+  assert.equal(classifyByText(""), null);
+  assert.equal(floorOf("MẶT BẰNG CHIẾU SÁNG TẦNG 2"), "Tầng 2");
+});

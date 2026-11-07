@@ -4,7 +4,7 @@ import type { AiTask } from "@/lib/ai/prompts";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
-const TASKS: AiTask[] = ["classify", "frame", "legend", "detect", "verify", "panel", "estimate"];
+const TASKS: AiTask[] = ["classify", "classify_sheet", "frame", "legend", "detect", "verify", "panel", "estimate"];
 
 export async function POST(req: Request) {
   // Image is processed in memory only and never stored (FR-015).

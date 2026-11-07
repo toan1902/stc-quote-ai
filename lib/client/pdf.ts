@@ -57,3 +57,29 @@ export function drawMarkers(src: HTMLCanvasElement, marks: { id: string; x: numb
   }
   return c;
 }
+
+/** Text layer of a page (title block of CAD exports often keeps real text). Empty for curve-only PDFs. */
+export async function pageText(doc: PdfDoc, pageNo: number): Promise<string> {
+  try {
+    const tc = await (await doc.getPage(pageNo)).getTextContent();
+    return tc.items.map((i) => ("str" in i ? i.str : "")).join(" ");
+  } catch { return ""; }
+}
+
+/** Contact sheet: up to 9 page thumbnails in a 3x3 grid with big red page numbers (1 AI call instead of 9). */
+export async function contactSheet(doc: PdfDoc, pages: number[], cell = 640): Promise<HTMLCanvasElement> {
+  const cols = 3, rows = Math.ceil(pages.length / cols);
+  const ch = Math.round(cell * 0.72);
+  const c = document.createElement("canvas"); c.width = cols * cell; c.height = rows * ch;
+  const ctx = c.getContext("2d")!; ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+  for (let k = 0; k < pages.length; k++) {
+    const t = await renderRegion(doc, pages[k], { x: 0, y: 0, w: 1, h: 1 }, cell - 8);
+    const x = (k % cols) * cell, y = Math.floor(k / cols) * ch;
+    const sc = Math.min((cell - 8) / t.width, (ch - 8) / t.height);
+    ctx.drawImage(t, x + 4, y + 4, t.width * sc, t.height * sc);
+    ctx.strokeStyle = "#94a3b8"; ctx.strokeRect(x + 1, y + 1, cell - 2, ch - 2);
+    ctx.fillStyle = "rgba(220,0,0,0.92)"; ctx.fillRect(x + 4, y + 4, 70, 46);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 34px sans-serif"; ctx.fillText(String(pages[k]), x + 10, y + 40);
+  }
+  return c;
+}

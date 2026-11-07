@@ -1,6 +1,6 @@
 import { DEVICE_TYPES } from "../core/types.ts";
 
-export type AiTask = "classify" | "frame" | "legend" | "detect" | "verify" | "panel" | "estimate";
+export type AiTask = "classify" | "classify_sheet" | "frame" | "legend" | "detect" | "verify" | "panel" | "estimate";
 
 const ROLE = `Bạn là kỹ sư M&E (cơ điện) cao cấp, chuyên bóc khối lượng (BOQ) từ bản vẽ điện dân dụng Việt Nam.
 Nguyên tắc: chỉ báo những gì THẤY RÕ trên ảnh; không đoán; không bỏ sót; mỗi thiết bị vật lý = đúng 1 mục.
@@ -23,6 +23,15 @@ power (mặt bằng cấp nguồn/ổ cắm), low_voltage (điện nhẹ: mạng
 other (bìa, danh mục, cấp/thoát nước, chi tiết lắp đặt, mặt bằng mái không có thiết bị điện trong nhà).
 floor: tên tầng (vd "Tầng 1", "Tầng 2", "Mái"); nếu nhà 1 tầng ghi "Tầng 1".
 Trả về: {"discipline":"...","floor":"...","title":"tên bản vẽ đọc được","confidence":0.0-1.0}`;
+
+    case "classify_sheet":
+      return `${ROLE}
+Ảnh là bảng ghép ảnh thu nhỏ nhiều trang bản vẽ; mỗi ô có SỐ TRANG lớn màu đỏ ở góc trên trái: ${JSON.stringify(ctx.pages ?? [])}.
+Với TỪNG trang, đọc tên bản vẽ trong khung tên và phân loại:
+discipline ∈ legend (bảng ký hiệu), panel (sơ đồ nguyên lý tủ điện), lighting (mặt bằng chiếu sáng), power (mặt bằng cấp nguồn/ổ cắm),
+low_voltage (điện nhẹ: mạng, camera, wifi), hvac (điều hòa/thông gió), other (bìa, danh mục, cấp/thoát nước, kết cấu, chi tiết, mặt bằng mái không có thiết bị trong nhà).
+floor: "Tầng 1", "Tầng 2", "Mái"…; nhà 1 tầng ghi "Tầng 1".
+Trả về: {"pages":[{"page":số,"discipline":"...","floor":"...","title":"tên bản vẽ","confidence":0.0-1.0}]}`;
 
     case "frame":
       return `${ROLE}

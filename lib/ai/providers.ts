@@ -25,7 +25,21 @@ function splitDataUrl(dataUrl: string) {
   return { mime: m[1], b64: m[2] };
 }
 
+const TRANSIENT = /RESOURCE_EXHAUSTED|UNAVAILABLE|overloaded|high demand|try again later/i;
+
+/** Gemini with automatic fallback to lighter models when the main one is overloaded (503/429). */
 async function callGemini(prompt: string, image: string, model: string): Promise<string> {
+  const fallbacks = (process.env.GEMINI_FALLBACK_MODELS || "gemini-flash-lite-latest,gemini-2.5-flash").split(",").map((m) => m.trim()).filter(Boolean);
+  const chain = [model, ...fallbacks.filter((m) => m !== model)];
+  let last: unknown;
+  for (const m of chain) {
+    try { return await callGeminiOnce(prompt, image, m); }
+    catch (e) { last = e; if (!(e instanceof RateLimitError)) throw e; }
+  }
+  throw last instanceof Error ? last : new RateLimitError(20);
+}
+
+async function callGeminiOnce(prompt: string, image: string, model: string): Promise<string> {
   const { mime, b64 } = splitDataUrl(image);
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST",
@@ -35,10 +49,10 @@ async function callGemini(prompt: string, image: string, model: string): Promise
       generationConfig: { temperature: 0, responseMimeType: "application/json" },
     }),
   });
-  if (r.status === 429) throw new RateLimitError(Number(r.headers.get("retry-after")) || 30);
+  if (r.status === 429 || r.status === 503 || r.status === 500) throw new RateLimitError(Number(r.headers.get("retry-after")) || 20);
   const j = await r.json().catch(() => ({}));
   if (!r.ok) {
-    if (JSON.stringify(j).includes("RESOURCE_EXHAUSTED")) throw new RateLimitError(30);
+    if (TRANSIENT.test(JSON.stringify(j))) throw new RateLimitError(20);
     throw new ProviderError(`Gemini ${r.status}: ${j?.error?.message ?? ""}`);
   }
   return (j.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");

@@ -169,7 +169,7 @@ export default function Home() {
                 <table className="t">
                   <thead><tr><th>Trang</th><th>Tên bản vẽ (AI đọc)</th><th>Bộ môn</th><th>Tầng</th><th>Tin cậy</th></tr></thead>
                   <tbody>{project.pages.map((p) => (
-                    <tr key={p.index}>
+                    <tr key={p.index} style={{ opacity: ["other"].includes(p.discipline) ? 0.45 : 1 }}>
                       <td>{p.index}</td><td>{p.title}</td>
                       <td><select value={p.discipline} onChange={(e) => setPageField(p.index, { discipline: e.target.value as Discipline })}>{Object.entries(DISC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></td>
                       <td><input value={p.floor} style={{ width: 100 }} onChange={(e) => setPageField(p.index, { floor: e.target.value })} /></td>

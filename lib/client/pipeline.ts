@@ -3,7 +3,8 @@ import type { Detection, Discipline, LegendSymbol, Page, Project, Rect, RoomLabe
 import { planTiles, pageToCrop } from "../core/tiling";
 import { itemsToDetections, roomsFromModel, applyVerify, dedupe, type ModelItem, type VerifyResult } from "../core/merge";
 import { assignRooms } from "../core/rooms";
-import { drawMarkers, pageAspect, renderRegion, toJpeg, type PdfDoc } from "./pdf";
+import { contactSheet, drawMarkers, pageAspect, pageText, renderRegion, toJpeg, type PdfDoc } from "./pdf";
+import { classifyByText, ELECTRICAL } from "../core/classify";
 
 export type Log = (msg: string, frac?: number) => void;
 const FULL: Rect = { x: 0, y: 0, w: 1, h: 1 };
@@ -17,37 +18,52 @@ export async function ai<T>(task: string, image: string, context: Record<string,
     if (r.status === 429) {
       const { retryAfter = 30 } = await r.json().catch(() => ({}));
       const wait = Math.min(90, retryAfter * (1 + attempt * 0.5));
-      log(`Hạn mức AI miễn phí tạm hết – chờ ${Math.round(wait)} giây rồi thử lại…`);
+      log(`AI đang quá tải / hết hạn mức miễn phí – chờ ${Math.round(wait)} giây rồi thử lại (lần ${attempt + 1})…`);
       await sleep(wait * 1000); continue;
     }
     if (r.status === 401) throw new Error("Phiên đăng nhập hết hạn – đăng nhập lại");
     const j = await r.json().catch(() => ({}));
     if (r.ok) return j.data as T;
-    if (attempt >= 2) throw new Error(j.detail || `Lỗi AI (${r.status})`);
-    await sleep(3000);
+    if (attempt >= 4) throw new Error(j.detail || `Lỗi AI (${r.status})`);
+    log(`Lỗi AI tạm thời (${r.status}) – thử lại…`);
+    await sleep(4000 * (attempt + 1));
   }
   throw new Error("AI quá tải, thử lại sau");
 }
 
-/** Phase A: classify pages, read legend & panel schedule. */
+/** Phase A: classify pages (text first, then 9-page contact sheets), read legend & panel. Non-electrical pages are skipped. */
 export async function analyseStructure(doc: PdfDoc, project: Project, log: Log, signal?: AbortSignal): Promise<Project> {
   const n = doc.numPages;
   const pages: Page[] = [];
+  const unknown: number[] = [];
   for (let i = 1; i <= n; i++) {
-    log(`Phân loại trang ${i}/${n}`, (i - 1) / n * 0.6);
-    const img = toJpeg(await renderRegion(doc, i, FULL, 1400));
-    const c = await ai<{ discipline: Discipline; floor: string; title?: string; confidence: number }>("classify", img, {}, log, signal);
-    pages.push({ index: i, discipline: c.discipline || "other", floor: c.floor || "Tầng 1", title: c.title, confidence: c.confidence ?? 0.5, analysed: false });
+    const c = classifyByText(await pageText(doc, i));
+    if (c) pages.push({ index: i, discipline: c.discipline, floor: c.floor, title: "(đọc từ chữ trong PDF)", confidence: 0.95, analysed: false });
+    else unknown.push(i);
   }
+  log(`Đọc chữ trong PDF: nhận diện ngay ${n - unknown.length}/${n} trang; ${unknown.length} trang cần AI xem ảnh`, 0.1);
+  for (let s = 0; s < unknown.length; s += 9) {
+    const group = unknown.slice(s, s + 9);
+    log(`AI phân loại trang ${group[0]}–${group[group.length - 1]} (1 lượt cho ${group.length} trang)`, 0.1 + (s / Math.max(1, unknown.length)) * 0.6);
+    const r = await ai<{ pages?: { page: number; discipline: Discipline; floor?: string; title?: string; confidence?: number }[] }>(
+      "classify_sheet", toJpeg(await contactSheet(doc, group)), { pages: group }, log, signal);
+    for (const pg of group) {
+      const hit = (r.pages || []).find((x) => Number(x.page) === pg);
+      pages.push({ index: pg, discipline: hit?.discipline || "other", floor: hit?.floor || "Tầng 1", title: hit?.title, confidence: hit?.confidence ?? (hit ? 0.7 : 0.3), analysed: false });
+    }
+  }
+  pages.sort((a, b) => a.index - b.index);
+  const skipped = pages.filter((p) => !ELECTRICAL.includes(p.discipline)).length;
+  log(`Bỏ qua ${skipped} trang không liên quan điện (cấp thoát nước, kết cấu, bìa…)`, 0.72);
   let legend: LegendSymbol[] = [];
   for (const p of pages.filter((x) => x.discipline === "legend")) {
-    log(`Đọc bảng ký hiệu (trang ${p.index})`, 0.7);
+    log(`Đọc bảng ký hiệu (trang ${p.index})`, 0.8);
     const r = await ai<{ symbols: LegendSymbol[] }>("legend", toJpeg(await renderRegion(doc, p.index, FULL, 2000)), {}, log, signal);
     legend = legend.concat(r.symbols || []);
   }
   let panelAcCircuits: number | undefined;
   for (const p of pages.filter((x) => x.discipline === "panel")) {
-    log(`Đọc sơ đồ tủ điện (trang ${p.index})`, 0.85);
+    log(`Đọc sơ đồ tủ điện (trang ${p.index})`, 0.9);
     const r = await ai<{ ac_circuits?: number }>("panel", toJpeg(await renderRegion(doc, p.index, FULL, 2000)), {}, log, signal);
     if (typeof r.ac_circuits === "number") panelAcCircuits = (panelAcCircuits ?? 0) + r.ac_circuits;
   }
