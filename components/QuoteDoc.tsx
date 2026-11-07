@@ -37,6 +37,15 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   const gateLine = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_ab");
   const gateN = gateLine?.qty ?? 0;
   const lightN = q.lightLines.reduce((a, l) => a + l.qty, 0);
+  const smartN = q.lightLines.filter((l) => l.smart).reduce((a, l) => a + l.qty, 0);
+  const plainN = lightN - smartN;
+  const lightTitle = !plainN ? "Smart Lighting – Đèn thông minh FPT" : !smartN ? "Chiếu sáng – đèn LED THƯỜNG thương hiệu AB" : "Chiếu sáng – đèn thông minh FPT + đèn LED thường AB";
+  const lightKind = (l: { smart?: boolean }) => (l.smart ? <span className="smt">ĐÈN THÔNG MINH FPT</span> : <span className="nrm">ĐÈN THƯỜNG</span>);
+  const upg = q.upgrade ?? { qty: 0, extra: 0 };
+  const plainNote = plainN > 0 && <>
+    <b>Lưu ý loại đèn:</b> {plainN} bộ đèn AB là <b>đèn LED THƯỜNG (không thông minh)</b> – bật/tắt theo nhóm mạch qua công tắc cảm ứng FPT (điều khiển bằng app, giọng nói, hẹn giờ, ngữ cảnh theo mạch); <b>không</b> chỉnh được độ sáng, nhiệt độ màu riêng từng đèn.
+    {upg.qty > 0 && <> Nâng cấp {upg.qty} bộ lên đèn thông minh FPT Athena (Downlight CCT 484.000đ, Spotlight 869.000đ – giá bán lẻ FPT): thêm khoảng <b>{vnd(upg.extra)}</b> (sau chiết khấu).</>}
+  </>;
   const excl = boq.excluded.filter((x) => !/Ổ|Tủ|Wifi|RJ45|TV|Bình/.test(x.name)).map((x) => `${x.name.toLowerCase()} ${x.unit === "m" ? `(~${x.qty}m)` : x.qty}`).join(", ");
   const warns = checks.filter((c) => c.severity !== "info");
   const camsOut = boq.cameras.filter((c) => c.type === "camera_outdoor").length;
@@ -54,12 +63,13 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
           <tbody>
             <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swN} công tắc cảm ứng, bộ trung tâm T950 + mở rộng sóng ZigBee{irN ? `, ${irN} bộ IR điều hòa` : ""}{gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
               <td className="r">{vnd(q.niem)}</td><td className="r">{vnd(q.giam)}</td><td className="r">{vnd(q.lapDat)}</td><td className="r b">{vnd(q.shTotal)}</td><td className="c">Phần 1<br />(4 trang)</td></tr>
-            <tr><td className="c">2</td><td><div className="it">Smart Lighting – Chiếu sáng</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng)</div></td>
+            <tr><td className="c">2</td><td><div className="it">{lightTitle}</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng){plainN > 0 ? ". Đèn thường: bật/tắt theo mạch qua công tắc FPT, không chỉnh sáng/màu từng đèn." : "."}</div></td>
               <td className="r">{vnd(q.lNiem)}</td><td className="r">{vnd(-q.lCk)}</td><td className="r">{vnd(q.lInstall)}{!q.lInstall && <><br /><span className="gr sm">(thợ điện lắp)</span></>}</td><td className="r b">{vnd(q.lTotal)}</td><td className="c">Phần 2<br />(2 trang)</td></tr>
             <tr className="tot"><td colSpan={2}>TỔNG GIÁ TRỊ 2 HẠNG MỤC</td><td className="r">{vnd(q.grandNiem)}</td><td className="r">{vnd(q.grandGiam)}</td><td className="r">{vnd(q.lapDat + q.lInstall)}</td><td className="r red">{vnd(q.grandTotal)}</td><td /></tr>
           </tbody></table>
         <div className="box grand"><div className="gl"><span>TỔNG CỘNG 2 HẠNG MỤC:</span><span>{vnd(q.grandTotal)}</span></div><div className="bc"><b>Bằng chữ:</b> {q.grandWords}</div></div>
         <div className="box note"><div className="nt">GHI CHÚ:</div><ul>
+          {plainNote && <li>{plainNote}</li>}
           <li>Chi tiết từng hạng mục xem ở các phần báo giá riêng đính kèm phía sau (Phần 1 – Smart Home, Phần 2 – Chiếu sáng).</li>
           <li>Số lượng thiết bị bóc tách từ hồ sơ thiết kế điện công trình{P.sourceName ? ` (${P.sourceName})` : ""}; khối lượng ghi “ước tính” cần đo lại thực tế.</li>
           {excl && <li>Chiếu sáng: phí lắp đặt 0đ – đèn do thợ điện công trình lắp đặt. Chưa bao gồm {excl}.</li>}
@@ -182,19 +192,20 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         <table className="xh"><tbody><tr><td className="xf"><img src={A + "i-001.png"} alt="" /></td>
           <td className="xc"><b>{CO}</b><br /><b>Trụ sở:</b> 104 Nguyễn Thượng Hiền, Phường Tân An, Tỉnh Đắk Lắk<br /><b>MST:</b> 6001584831<br /><b>Hotline:</b> 0823 047 047<br /><b>Email:</b> Stctelecom.dlk@gmail.com<br /><b>TK:</b> 0231 000 648 025 - Vietcombank CN Đắk Lắk<br /><b>Đại lý ủy quyền</b> FPT Smart Home khu vực Đắk Lắk</td>
           <td className="xs"><img src={A + "i-000.png"} alt="" /></td></tr></tbody></table>
-        <div className="xbox"><div className="xt">BẢNG DỰ TOÁN SMART HOME FPT</div>
+        <div className="xbox"><div className="xt">{smartN ? "BẢNG DỰ TOÁN CHIẾU SÁNG" : "BẢNG DỰ TOÁN CHIẾU SÁNG – ĐÈN LED THƯỜNG"}</div>
           <div className="xk"><span>Kính gửi:</span><span>{kh}</span><span>Địa chỉ công trình:</span><span>{dc}</span></div>
           <div className="xi">Công ty chúng tôi xin trân trọng gửi tới Quý khách hàng lời chúc sức khỏe và thành đạt. Chúng tôi xin gửi tới Quý khách hàng bảng dự toán hạng mục thi công do Công ty chúng tôi cung cấp, lắp đặt hoàn thiện trong bảng dưới đây:</div></div>
         <table className="xtb"><thead><tr><th>STT</th><th>Tên thiết bị</th><th>Hình ảnh</th><th>Thương hiệu</th><th>Đơn vị</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th>Tính năng/thông số kỹ thuật</th></tr></thead><tbody>
           <tr className="xsec"><td>I</td><td colSpan={4}>Giải pháp chiếu sáng</td><td className="c">-</td><td /><td /><td className="r">{vndComma(q.lNiem)}</td></tr>
-          {q.lightLines.map((l, i) => <tr key={l.code} className="xrow" style={{ height: q.lightLines.length > 2 ? 110 : 150 }}><td className="c">{i + 1}</td><td>{l.name}</td><td className="c"><img src={l.img} alt="" /></td><td className="c">{l.brand}{l.vn && <><br /><span className="vn">Hàng Việt Nam</span></>}</td><td className="c">{l.unit}</td><td className="c">{l.qty}</td><td className="r">{vndComma(l.price)}</td><td className="r">{vndComma(l.total)}</td><td dangerouslySetInnerHTML={{ __html: l.spec || "" }} /></tr>)}
-          <tr className="xsub"><td><i>I</i></td><td colSpan={4}><i>Giải pháp smart lighting</i></td><td /><td /><td /><td className="r"><i>{vndComma(q.lNiem)}</i></td></tr>
+          {q.lightLines.map((l, i) => <tr key={l.code} className="xrow" style={{ height: q.lightLines.length > 2 ? 110 : 150 }}><td className="c">{i + 1}</td><td>{l.name}<br />{lightKind(l)}</td><td className="c"><img src={l.img} alt="" /></td><td className="c">{l.brand}{l.vn && <><br /><span className="vn">Hàng Việt Nam</span></>}</td><td className="c">{l.unit}</td><td className="c">{l.qty}</td><td className="r">{vndComma(l.price)}</td><td className="r">{vndComma(l.total)}</td><td dangerouslySetInnerHTML={{ __html: l.spec || "" }} /></tr>)}
+          <tr className="xsub"><td><i>I</i></td><td colSpan={4}><i>{lightTitle}</i></td><td /><td /><td /><td className="r"><i>{vndComma(q.lNiem)}</i></td></tr>
           <tr className="xy"><td colSpan={8} className="c">TỔNG GIÁ TRỊ THIẾT BỊ</td><td className="r">{vndComma(q.lNiem)}</td></tr>
-          <tr><td colSpan={8} className="xsv"><b>CHI PHÍ LẮP ĐẶT, CẤU HÌNH VÀ KẾT NỐI DỊCH VỤ</b><br />- Lắp đặt toàn bộ thiết bị điện thông minh như báo giá trên.<br />- Cài đặt và kết nối thiết bị vào Điều Khiển Trung Tâm.<br />- Thiết kế hệ thống, Cấu hình tự động hóa các thiết bị liên kết với nhau.<br />- Phân phòng, đặt tên thiết bị, cấu hình tự động cho từng phòng.<br />- Hướng dẫn khách hàng thao tác sử dụng trên máy tính, điện thoại.<br />- Chia sẻ thiết bị cho người thân, gia đình cùng sử dụng, điều khiển.<br />- Hướng dẫn cài đặt trực tuyến khi phát sinh lỗi kết nối sau khi nghiệm thu, phát sinh phí nếu có yêu cầu xử lý tận nơi.<br />- Bảo hành tận nơi trong vòng 24 tháng nếu sản phẩm phát sinh lỗi do nhà sản xuất.</td>
+          <tr><td colSpan={8} className="xsv"><b>CHI PHÍ LẮP ĐẶT, CẤU HÌNH VÀ KẾT NỐI DỊCH VỤ</b>{smartN ? <><br />- Lắp đặt toàn bộ thiết bị điện thông minh như báo giá trên.<br />- Cài đặt và kết nối thiết bị vào Điều Khiển Trung Tâm.<br />- Thiết kế hệ thống, Cấu hình tự động hóa các thiết bị liên kết với nhau.<br />- Phân phòng, đặt tên thiết bị, cấu hình tự động cho từng phòng.<br />- Hướng dẫn khách hàng thao tác sử dụng trên máy tính, điện thoại.<br />- Chia sẻ thiết bị cho người thân, gia đình cùng sử dụng, điều khiển.<br />- Hướng dẫn cài đặt trực tuyến khi phát sinh lỗi kết nối sau khi nghiệm thu, phát sinh phí nếu có yêu cầu xử lý tận nơi.<br />- Bảo hành tận nơi trong vòng 24 tháng nếu sản phẩm phát sinh lỗi do nhà sản xuất.</> : <><br />- Đèn LED thường do thợ điện công trình lắp đặt theo bản vẽ chiếu sáng.<br />- STC cấu hình các mạch đèn (qua công tắc cảm ứng FPT) để bật/tắt bằng app, giọng nói, hẹn giờ, ngữ cảnh theo mạch.<br />- Đèn thường không chỉnh được độ sáng, màu ánh sáng riêng từng đèn.<br />- Bảo hành đèn theo chính sách của hãng AB.</>}</td>
             <td className="r xred" style={{ verticalAlign: "bottom" }}>{q.lInstall ? vndComma(q.lInstall) : <><i>(Đèn do thợ điện công trình lắp đặt)</i>&nbsp; 0</>}</td></tr>
           <tr><td colSpan={8} className="c"><b>CHIẾT KHẤU {Math.round(d.settings.lightDiscount * 100)}%</b></td><td className="r">{vndComma(q.lCk)}</td></tr>
           <tr><td colSpan={8} className="c"><b>PHẦN MỀM</b></td><td className="c xred"><b>Miễn phí</b></td></tr>
           <tr className="xy"><td colSpan={8} className="c">TỔNG CỘNG GÓI GIẢI PHÁP</td><td className="r">{vndComma(q.lTotal)}</td></tr>
+          {plainNote && <tr><td colSpan={9} className="xnote">{plainNote}</td></tr>}
           {excl && <tr><td colSpan={9} className="xred">Ghi chú: Báo giá chưa bao gồm {excl} thể hiện trên bản vẽ.</td></tr>}
         </tbody></table>
         <div className="xred" style={{ fontSize: 9.5, marginTop: 3 }}>Phí lắp đặt đèn: 0đ – đèn do thợ điện công trình lắp đặt; STC hỗ trợ cấu hình hệ thống chiếu sáng vào kịch bản FPT Smart Home.</div>
