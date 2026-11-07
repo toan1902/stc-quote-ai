@@ -49,3 +49,4 @@ a.btn.primary{background:var(--navy,#1d3a8a);color:#fff;border-color:transparent
 .smtTag,.nrmTag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:3px;font-size:10px;font-weight:700;vertical-align:middle}
 .smtTag{background:#16a34a;color:#fff}
 .nrmTag{background:#e5e7eb;color:#374151;border:1px solid #9ca3af}
+.top .cur{font-size:13px;padding:4px 10px;border-radius:6px;background:#eef2ff;color:#1e3a8a;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
