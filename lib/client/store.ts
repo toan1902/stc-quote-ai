@@ -23,9 +23,23 @@ export const saveCatalog = (c: CatalogItem[]) => safe(() => (localStorage.setIte
 export const loadSettings = (): Settings => safe(() => ({ ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("stc_settings") || "{}") }), DEFAULT_SETTINGS);
 export const saveSettings = (s: Settings) => safe(() => localStorage.setItem("stc_settings", JSON.stringify(s)), undefined);
 
-export const saveDraft = (p: Project) => safe(() => localStorage.setItem("stc_draft", JSON.stringify(p)), undefined);
-export const loadDraft = (): Project | null => safe(() => JSON.parse(localStorage.getItem("stc_draft") || "null"), null);
-export const clearDraft = () => safe(() => localStorage.removeItem("stc_draft"), undefined);
+/** Hồ sơ khách hàng lưu trên trình duyệt này (mỗi khách 1 hồ sơ, khoá theo id). */
+const PKEY = "stc_projects";
+const readAll = (): Record<string, Project> => safe(() => {
+  const all = JSON.parse(localStorage.getItem(PKEY) || "{}") as Record<string, Project>;
+  const old = JSON.parse(localStorage.getItem("stc_draft") || "null") as Project | null; // bản nháp kiểu cũ → chuyển vào danh sách
+  if (old?.id && !all[old.id]) { all[old.id] = old; localStorage.setItem(PKEY, JSON.stringify(all)); }
+  if (old) localStorage.removeItem("stc_draft");
+  return all;
+}, {});
+export const listProjects = (): Project[] => Object.values(readAll()).sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+export const getProject = (id: string): Project | null => readAll()[id] ?? null;
+/** Returns false when the browser storage is full. */
+export const saveProject = (p: Project): boolean => {
+  try { const all = readAll(); all[p.id] = { ...p, updatedAt: new Date().toISOString() }; localStorage.setItem(PKEY, JSON.stringify(all)); return true; }
+  catch { return false; }
+};
+export const deleteProject = (id: string) => safe(() => { const all = readAll(); delete all[id]; localStorage.setItem(PKEY, JSON.stringify(all)); }, undefined);
 
 export function download(name: string, data: BlobPart, type: string) {
   const url = URL.createObjectURL(new Blob([data], { type }));
