@@ -8,7 +8,9 @@ import { importTakeoff, validateTakeoff } from "@/lib/core/takeoff";
 import { newId } from "@/lib/core/merge";
 import { loadPdf, type PdfDoc } from "@/lib/client/pdf";
 import { analyseStructure, countDevices, COUNT_DISCIPLINES } from "@/lib/client/pipeline";
-import { clearDraft, loadCatalog, loadDraft, loadSettings, saveCatalog, saveDraft, saveSettings } from "@/lib/client/store";
+import { deleteProject, download, listProjects, loadCatalog, loadSettings, saveCatalog, saveProject, saveSettings, slug } from "@/lib/client/store";
+import { exportTakeoff } from "@/lib/core/takeoff";
+import { vnd } from "@/lib/core/words";
 import ReviewCanvas from "@/components/ReviewCanvas";
 import BoqPanel from "@/components/BoqPanel";
 import QuoteEditor from "@/components/QuoteEditor";
@@ -45,20 +47,28 @@ export default function Home() {
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [highlight, setHighlight] = useState<string[]>([]);
-  const [draft, setDraft] = useState<Project | null>(null);
+  const [saved, setSaved] = useState<Project[]>([]);
+  const [q, setQ] = useState("");
+  const [storageFull, setStorageFull] = useState(false);
   const abort = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    setCatalog(loadCatalog()); setSettings(loadSettings()); setDraft(loadDraft());
+    setCatalog(loadCatalog()); setSettings(loadSettings()); setSaved(listProjects());
     fetch("/api/health").then((r) => r.json()).then(setHealth).catch(() => {});
   }, []);
-  useEffect(() => { if (project) saveDraft(project); }, [project]);
+  // every change is saved into this customer's own record (never overwrites another customer)
+  useEffect(() => { if (project) { setStorageFull(!saveProject(project)); } }, [project]);
+  useEffect(() => { if (step === 0) setSaved(listProjects()); }, [step]);
 
   const log = (m: string, f?: number) => { setLogs((l) => [...l.slice(-200), `${new Date().toLocaleTimeString("vi-VN")}  ${m}`]); if (f != null) setProgress(f); };
 
-  const boq = useMemo(() => (project && settings ? buildBOQ(project, settings) : null), [project, settings]);
+  const eff = useMemo(() => (settings ? { ...settings, ...(project?.options ?? {}) } : null), [settings, project?.options]);
+  const boq = useMemo(() => (project && eff ? buildBOQ(project, eff) : null), [project, eff]);
   const checks = useMemo(() => (project ? crossCheck(project) : []), [project]);
-  const quote = useMemo(() => (boq && settings && catalog.length ? computeQuote(boq, catalog, settings, extrasOverrides(project?.extras)) : null), [boq, catalog, settings, project?.extras]);
+  const quote = useMemo(() => (boq && settings && catalog.length ? computeQuote(boq, catalog, eff!, extrasOverrides(project?.extras)) : null), [boq, catalog, eff, project?.extras]);
+  const totalOf = (p: Project) => { try { const s = { ...settings!, ...(p.options ?? {}) }; return computeQuote(buildBOQ(p, s), catalog, s, extrasOverrides(p.extras)).grandTotal; } catch { return 0; } };
+  const openProject = (p: Project) => { setProject(p.options || !settings ? p : { ...p, options: { ...settings } }); setFile(null); setDoc(null); setStep(p.pages.some((x) => COUNT_DISCIPLINES.includes(x.discipline) && !x.analysed) && p.source !== "claude-import" ? 1 : 2); };
+  const newCustomer = () => { setProject(null); setFile(null); setDoc(null); setForm({ customer: "", address: "Đắk Lắk", date: today(), areaM2: "" }); setLogs([]); setStep(0); setError(""); };
 
   const pick = async (f: File) => {
     setError("");
@@ -73,6 +83,7 @@ export default function Home() {
     id: newId("p"), customer: form.customer.trim(), address: form.address, date: form.date, sourceName: file?.name || "",
     status: "draft", source: health?.provider === "claude" ? "claude-api" : "gemini", pages: [], legend: [], detections: [], rooms: [],
     estimates: [], edits: [], areaM2: Number(form.areaM2) || undefined,
+    options: settings ? { ...settings } : undefined,   // snapshot: later changes to defaults don't move this customer's quote
   });
 
   const run = async (fn: (signal: AbortSignal) => Promise<void>) => {
@@ -102,7 +113,8 @@ export default function Home() {
       if (errs.length) throw new Error(errs.slice(0, 5).join("; "));
       const p = importTakeoff(j, today());
       if (!p.customer && form.customer) p.customer = form.customer;
-      setProject({ ...p, status: "reviewed" }); setStep(2);
+      if (saved.some((x) => x.id === p.id) && !confirm(`Hồ sơ “${p.customer}” đã có trong danh sách. Thay bằng nội dung file này?`)) return;
+      setProject({ ...p, options: p.options ?? (settings ? { ...settings } : undefined), status: "reviewed" }); setStep(2);
     } catch (e) { setError(`File JSON không hợp lệ: ${(e as Error).message}`); }
   };
 
@@ -122,11 +134,14 @@ export default function Home() {
         <h1>STC Quote AI</h1>
         <div className="steps">{STEPS.map((s, i) => <span key={s} className={i === step ? "on" : i < step ? "done" : ""} onClick={() => project && i >= 2 && setStep(i as Step)}>{s}</span>)}</div>
         <div className="sp" />
+        {project && <span className="cur">Đang làm: <b>{project.customer}</b> · {project.address}</span>}
+        <button onClick={newCustomer}>＋ Khách mới</button>
         {health && <span className="note">AI: {health.provider} · {health.model}{!health.configured && <b className="err"> (chưa có key)</b>}</span>}
         <button className="ghost" onClick={() => fetch("/api/logout", { method: "POST" }).then(() => (location.href = "/login"))}>Đăng xuất</button>
       </header>
       <main className="wrap">
         {error && <div className="card err">{error}</div>}
+        {storageFull && <div className="card err">Bộ nhớ trình duyệt đã đầy – hãy “Tải hồ sơ” các khách cũ về máy rồi xoá bớt trong danh sách.</div>}
 
         {step === 0 && (
           <div className="grid2">
@@ -144,8 +159,7 @@ export default function Home() {
               </div>
               <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
                 <button className="primary" disabled={!doc || !form.customer || busy || !health?.configured} onClick={startAnalyse}>Phân tích bằng AI</button>
-                {draft && <button onClick={() => { setProject(draft); setStep(draft.pages.some((p) => COUNT_DISCIPLINES.includes(p.discipline) && !p.analysed) && draft.source !== "claude-import" ? 1 : 2); }}>Mở bản nháp: {draft.customer}</button>}
-                {draft && <button className="ghost" onClick={() => { clearDraft(); setDraft(null); }}>Xoá nháp</button>}
+
               </div>
               {health?.provider === "gemini" && <p className="note warn" style={{ marginTop: 10 }}>Lưu ý bảo mật: AI miễn phí (Gemini free tier) – Google có thể dùng dữ liệu gói miễn phí để cải tiến dịch vụ. Với bản vẽ nhạy cảm, dùng cách “Nhập kết quả Claude” bên phải.</p>}
               {health && !health.configured && <p className="err">Máy chủ chưa có API key AI – nhờ quản trị thêm GEMINI_API_KEY trên Vercel, hoặc dùng cách nhập kết quả Claude.</p>}
@@ -157,7 +171,31 @@ export default function Home() {
                 <li>Yêu cầu Claude <b>“xuất takeoff JSON cho app”</b> → tải file <code>TAKEOFF_….json</code>.</li>
                 <li>Chọn file đó bên dưới (có thể kèm PDF bên trái để xem bản vẽ).</li>
               </ol>
-              <label className="drop"><input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />Chọn file takeoff JSON</label>
+              <label className="drop"><input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />Chọn file takeoff JSON hoặc file hồ sơ <code>HOSO_….json</code></label>
+            </div>
+            <div className="card" style={{ gridColumn: "1 / -1" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <h2 style={{ margin: 0 }}>Hồ sơ khách hàng ({saved.length})</h2>
+                <input placeholder="Tìm tên khách / địa chỉ…" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 260 }} />
+                <span className="note">Lưu trên trình duyệt máy này. Mỗi khách 1 hồ sơ riêng – sửa khách này không ảnh hưởng khách khác.</span>
+              </div>
+              {saved.length === 0 ? <p className="note">Chưa có hồ sơ nào.</p> : (
+                <table className="t" style={{ marginTop: 10 }}>
+                  <thead><tr><th>Khách hàng</th><th>Địa chỉ</th><th>Ngày lập</th><th>Tổng báo giá</th><th>Link online</th><th>Sửa lần cuối</th><th /></tr></thead>
+                  <tbody>{saved.filter((p) => !q || `${p.customer} ${p.address}`.toLowerCase().includes(q.toLowerCase())).map((p) => (
+                    <tr key={p.id}>
+                      <td><b>{p.customer}</b></td><td>{p.address}</td><td>{p.date}</td>
+                      <td style={{ textAlign: "right" }}>{settings && catalog.length ? vnd(totalOf(p)) : ""}</td>
+                      <td>{p.shareId ? (p.shareStatus === "locked" ? <b style={{ color: "var(--green)" }}>ĐÃ CHỐT</b> : "Đang gửi khách") : <span className="note">chưa tạo</span>}</td>
+                      <td className="note">{p.updatedAt ? new Date(p.updatedAt).toLocaleString("vi-VN") : ""}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>
+                        <button className="primary" onClick={() => openProject(p)}>Mở</button>{" "}
+                        <button onClick={() => download(`HOSO_${slug(p.customer)}_${slug(p.address)}.json`, JSON.stringify(exportTakeoff(p), null, 1), "application/json")}>Tải hồ sơ</button>{" "}
+                        <button className="ghost" onClick={() => { if (confirm(`Xoá hồ sơ “${p.customer} – ${p.address}” khỏi máy này?${p.shareId ? "\nLink online của khách vẫn còn; muốn sửa lại cần file HOSO đã tải." : ""}`)) { deleteProject(p.id); setSaved(listProjects()); } }}>Xoá</button>
+                      </td>
+                    </tr>))}</tbody>
+                </table>
+              )}
             </div>
           </div>
         )}
@@ -198,9 +236,11 @@ export default function Home() {
           </div>
         )}
 
-        {step === 3 && project && boq && quote && settings && (
-          <QuoteEditor project={project} doc={doc} boq={boq} quote={quote} checks={checks} catalog={catalog} settings={settings}
-            onCatalog={(c) => { setCatalog(c); saveCatalog(c); }} onSettings={(s) => { setSettings(s); saveSettings(s); }}
+        {step === 3 && project && boq && quote && eff && (
+          <QuoteEditor project={project} doc={doc} boq={boq} quote={quote} checks={checks} catalog={catalog} settings={eff}
+            onCatalog={(c) => { setCatalog(c); saveCatalog(c); }}
+            onSettings={(s) => setProject((p) => (p ? { ...p, options: s } : p))}
+            onSaveDefaults={() => { setSettings(eff); saveSettings(eff); }}
             onProject={(patch) => setProject((p) => (p ? { ...p, ...patch } : p))}
             onExported={() => setProject((p) => (p ? { ...p, status: "exported" } : p))} />
         )}
