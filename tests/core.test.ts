@@ -98,8 +98,10 @@ test("fixture: cross-check flags Line 15 without load and nothing else critical"
   assert.equal(cc.filter((c) => c.code === "C3" || c.code === "C4" || c.code === "C5").length, 0);
 });
 
-test("fixture: quote totals identical to the approved PDF/Excel", () => {
-  const q = computeQuote(buildBOQ(load(), DEFAULT_SETTINGS), DEFAULT_CATALOG, DEFAULT_SETTINGS);
+test("fixture: quote totals identical to the approved PDF/Excel (prices of that day)", () => {
+  // the approved quote used IR 899k and curtain motor 3.774M (before the FPT retail list of 07/11/2026)
+  const oldCat = DEFAULT_CATALOG.map((c) => (c.code === "ir" ? { ...c, price: 899000 } : c.code === "curtain_motor" ? { ...c, price: 3774000 } : c));
+  const q = computeQuote(buildBOQ(load(), DEFAULT_SETTINGS), oldCat, DEFAULT_SETTINGS);
   assert.equal(q.niem, 49730000);
   assert.equal(q.giam, -10657900);
   assert.equal(q.lapDat, 7459500);
@@ -204,4 +206,17 @@ test("lighting: AB lights labelled ordinary, FPT smart prices match FPT retail l
   const smart = computeQuote(boq, DEFAULT_CATALOG, { ...DEFAULT_SETTINGS, defaultDownlight: "downlight_fpt" });
   assert.equal(smart.lightLines[0].code, "downlight_fpt"); assert.equal(smart.upgrade.qty, 0);
   assert.equal(smart.lTotal - q.lTotal, q.upgrade.extra);
+});
+
+test("FPT retail prices: IR 759k, AOK motor 3.3M, gate switch 2.079M; hub price follows the chosen model", () => {
+  const cat = (c: string) => DEFAULT_CATALOG.find((x) => x.code === c)!;
+  assert.equal(cat("ir").price, 759000); assert.equal(cat("curtain_motor").price, 3300000); assert.equal(cat("gate_sw").price, 2079000);
+  const boq = buildBOQ(load(), DEFAULT_SETTINGS);
+  const lines = (s: typeof DEFAULT_SETTINGS) => computeQuote(boq, DEFAULT_CATALOG, s).sections.flatMap((x) => x.lines);
+  const t950 = lines(DEFAULT_SETTINGS).find((l) => l.code === "hub")!;
+  assert.equal(t950.price, 2409000);
+  const pb = lines({ ...DEFAULT_SETTINGS, hubModel: "hub_pb650" });
+  assert.ok(!pb.some((l) => l.code === "hub"));
+  const pbl = pb.find((l) => l.code === "hub_pb650")!;
+  assert.equal(pbl.price, 3900000); assert.equal(pbl.qty, t950.qty);
 });
