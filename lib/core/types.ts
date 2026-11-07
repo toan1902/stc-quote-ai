@@ -112,4 +112,7 @@ export interface Project {
   areaM2?: number;
   shareId?: string;            // link báo giá online
   extras?: { gate_ab?: number };  // hạng mục ngoài bản vẽ (cổng tự động…)
+  options?: Partial<Settings>;    // lựa chọn riêng của khách này (loại đèn, bộ trung tâm, % chiết khấu…)
+  shareStatus?: "live" | "locked"; // trạng thái link online (ghi lại để hiện trong danh sách)
+  updatedAt?: string;
 }
