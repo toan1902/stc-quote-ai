@@ -58,8 +58,13 @@ export async function analyseStructure(doc: PdfDoc, project: Project, log: Log, 
   let legend: LegendSymbol[] = [];
   for (const p of pages.filter((x) => x.discipline === "legend")) {
     log(`Đọc bảng ký hiệu (trang ${p.index})`, 0.8);
-    const r = await ai<{ symbols: LegendSymbol[] }>("legend", toJpeg(await renderRegion(doc, p.index, FULL, 2000)), {}, log, signal);
-    legend = legend.concat(r.symbols || []);
+    // legend tables are dense: read left & right halves at high resolution, accept any array the model returns
+    for (const half of [{ x: 0, y: 0, w: 0.55, h: 1 }, { x: 0.45, y: 0, w: 0.55, h: 1 }]) {
+      const r = await ai<Record<string, unknown>>("legend", toJpeg(await renderRegion(doc, p.index, half, 2200)), {}, log, signal);
+      legend = legend.concat(firstArray<LegendSymbol>(r).filter((x) => x && typeof x.name === "string"));
+    }
+    legend = legend.filter((l, i, a) => a.findIndex((m) => m.name === l.name) === i);
+    log(`Bảng ký hiệu: đọc được ${legend.length} ký hiệu`, 0.85);
   }
   let panelAcCircuits: number | undefined;
   for (const p of pages.filter((x) => x.discipline === "panel")) {
@@ -70,6 +75,21 @@ export async function analyseStructure(doc: PdfDoc, project: Project, log: Log, 
   log("Xong bước nhận diện trang", 1);
   return { ...project, pages, legend, panelAcCircuits };
 }
+
+/** Models sometimes wrap arrays under other keys ({legend:[…]}, {items:[…]}) or return a bare array. */
+export function firstArray<T>(r: unknown): T[] {
+  if (Array.isArray(r)) return r as T[];
+  if (r && typeof r === "object") for (const v of Object.values(r)) if (Array.isArray(v)) return v as T[];
+  return [];
+}
+
+const CONCURRENCY = 2;
+const PROFILE: Partial<Record<Discipline, { verify: boolean; symbolFrac: number }>> = {
+  lighting: { verify: true, symbolFrac: 0.005 },
+  low_voltage: { verify: true, symbolFrac: 0.006 },
+  power: { verify: false, symbolFrac: 0.006 },
+  hvac: { verify: false, symbolFrac: 0.012 },
+};
 
 export const COUNT_DISCIPLINES: Discipline[] = ["lighting", "power", "low_voltage", "hvac"];
 
@@ -95,31 +115,35 @@ export async function countDevices(doc: PdfDoc, project: Project, log: Log, sign
       if (x2 - x1 > 0.2 && y2 - y1 > 0.2) frame = { x: Math.max(0, x1 - 0.01), y: Math.max(0, y1 - 0.01), w: Math.min(1, x2 - x1 + 0.02), h: Math.min(1, y2 - y1 + 0.02) };
     }
     pg.frame = frame;
-    const tiles = planTiles(frame, await pageAspect(doc, pg.index));
+    // per-discipline effort: dense lighting/LV sheets get 2 passes; power/HVAC (few quoted items) 1 pass, HVAC coarser tiles
+    const prof = PROFILE[pg.discipline] ?? { verify: false, symbolFrac: 0.006 };
+    const tiles = planTiles(frame, await pageAspect(doc, pg.index), { symbolFrac: prof.symbolFrac });
     let pageDets: Detection[] = [];
-    for (let t = 0; t < tiles.length; t++) {
-      const tile = tiles[t];
-      const frac = base + ((t + 0.5) / tiles.length) / todo.length;
-      log(`Trang ${pg.index}: đếm ô ${t + 1}/${tiles.length} (lượt 1)`, frac);
+    const ctx = { legend, discipline: pg.discipline };
+    let done = 0;
+    const runTile = async (tile: (typeof tiles)[number]) => {
       const canvas = await renderRegion(doc, pg.index, tile.crop, 1536);
-      const ctx = { legend, discipline: pg.discipline };
-      const det = await ai<{ items?: ModelItem[]; rooms?: { name: string; point: number[] }[] }>("detect", toJpeg(canvas), ctx, log, signal);
-      let tileDets = itemsToDetections(tile, pg.index, det.items || [], 1);
-      rooms = rooms.concat(roomsFromModel(tile, pg.index, det.rooms));
-      // verification pass on an annotated image
-      log(`Trang ${pg.index}: soát lại ô ${t + 1}/${tiles.length} (lượt 2)`, frac);
-      const short = tileDets.map((d, i) => ({ ...d, sid: String(i + 1) }));
-      const marks = short.map((d) => { const c = pageToCrop(tile.crop, d.x, d.y); return { id: d.sid, x: (c.x / 1000) * canvas.width, y: (c.y / 1000) * canvas.height }; });
-      const vr = await ai<VerifyResult>("verify", toJpeg(drawMarkers(canvas, marks)), { ...ctx, candidates: short.map((d) => ({ id: d.sid, type: d.type, circuits: d.circuits })) }, log, signal);
-      const map = new Map(short.map((d) => [d.sid, d.id]));
-      tileDets = applyVerify(tileDets, tile, pg.index, {
-        remove: (vr.remove || []).map((s) => map.get(String(s))!).filter(Boolean),
-        retype: (vr.retype || []).map((r) => ({ id: map.get(String(r.id))!, type: r.type })).filter((r) => r.id),
-        add: vr.add || [],
-      });
+      const det = await ai<Record<string, unknown>>("detect", toJpeg(canvas), ctx, log, signal);
+      let tileDets = itemsToDetections(tile, pg.index, (det.items as ModelItem[]) || firstArray<ModelItem>(det), 1);
+      rooms = rooms.concat(roomsFromModel(tile, pg.index, det.rooms as { name: string; point: number[] }[]));
+      if (prof.verify && tileDets.length) {
+        const short = tileDets.map((d, i) => ({ ...d, sid: String(i + 1) }));
+        const marks = short.map((d) => { const c = pageToCrop(tile.crop, d.x, d.y); return { id: d.sid, x: (c.x / 1000) * canvas.width, y: (c.y / 1000) * canvas.height }; });
+        const vr = await ai<VerifyResult>("verify", toJpeg(drawMarkers(canvas, marks)), { ...ctx, candidates: short.map((d) => ({ id: d.sid, type: d.type, circuits: d.circuits })) }, log, signal);
+        const map = new Map(short.map((d) => [d.sid, d.id]));
+        tileDets = applyVerify(tileDets, tile, pg.index, {
+          remove: (vr.remove || []).map((x) => map.get(String(x))!).filter(Boolean),
+          retype: (vr.retype || []).map((r) => ({ id: map.get(String(r.id))!, type: r.type })).filter((r) => r.id),
+          add: vr.add || [],
+        });
+      }
       pageDets = pageDets.concat(tileDets.map((d) => ({ ...d, floor: pg.floor })));
+      done++;
+      log(`Trang ${pg.index} (${pg.discipline}): xong ô ${done}/${tiles.length}${prof.verify ? " (đếm + soát lại)" : ""}`, base + (done / tiles.length) / todo.length * 0.95);
       onPartial?.({ ...project, pages: pages.map((x) => ({ ...x })), detections: detections.concat(pageDets), rooms, estimates });
-    }
+    };
+    // 2 tiles in parallel (free-tier friendly; back-off handles 429/503)
+    for (let t = 0; t < tiles.length; t += CONCURRENCY) await Promise.all(tiles.slice(t, t + CONCURRENCY).map(runTile));
     if (pg.discipline === "lighting") {
       log(`Trang ${pg.index}: ước tính LED dây / ray rèm`, base + 0.95 / todo.length);
       const est = await ai<{ led_strip?: { room: string; meters: number }[]; rails?: { room: string; meters: number }[] }>("estimate", toJpeg(await renderRegion(doc, pg.index, frame, 2000)), {}, log, signal);
