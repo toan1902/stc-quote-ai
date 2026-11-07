@@ -15,7 +15,7 @@ input,select{font:inherit;padding:7px 10px;border:1px solid #cbd5e1;border-radiu
 .card h2{font-size:16px;margin:0 0 12px;color:var(--navy)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
-.drop{border:2px dashed #94a3b8;border-radius:12px;padding:34px;text-align:center;background:#f8fafc;cursor:pointer}
+.drop{display:block;border:2px dashed #94a3b8;border-radius:12px;padding:34px;text-align:center;background:#f8fafc;cursor:pointer}
 .drop.has{border-color:var(--navy);background:#eff6ff}
 .note{font-size:12.5px;color:var(--muted)}.warn{color:#b45309}.err{color:var(--red)}
 .bar{height:8px;background:#e2e8f0;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--navy);transition:width .3s}
