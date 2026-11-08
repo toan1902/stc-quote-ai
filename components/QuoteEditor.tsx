@@ -67,6 +67,9 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
   const [syncing, setSyncing] = useState(false);
   const [dep, setDep] = useState({ amount: "", date: new Date().toLocaleDateString("vi-VN"), method: "Chuyển khoản", phone: "", note: "" });
   const link = share ? `${location.origin}/q/${share.id}` : "";
+  const [seen, setSeen] = useState<{ count: number; last?: string; recent: { t: string; dev: string }[] } | null>(null);
+  useEffect(() => { if (!share?.id) return; const f = () => fetch(`/api/views?ids=${share.id}`).then((r) => r.json()).then((j) => setSeen(j.views?.[share.id] ?? null)).catch(() => {}); f(); const t = setInterval(f, 60000); return () => clearInterval(t); }, [share?.id]);
+  const seenLine = seen ? (seen.count ? <p className="note" style={{ color: "var(--green)" }}>👁 Khách đã xem {seen.count} lần · lần cuối {new Date(seen.last!).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })} ({seen.recent[0]?.dev})</p> : <p className="note" style={{ color: "#b45309" }}>👁 Khách chưa mở link</p>) : null;
   const locked = share?.status === "locked";
   const lastSent = useRef("");
 
@@ -255,7 +258,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
                 </div>
               ) : (
                 <>
-                  <p className="note">{syncing ? "Đang cập nhật link…" : `Link đang tự cập nhật · bản ${share.version} · ${new Date(share.updatedAt).toLocaleTimeString("vi-VN")}`}</p>
+                  <p className="note">{syncing ? "Đang cập nhật link…" : `Link đang tự cập nhật · bản ${share.version} · ${new Date(share.updatedAt).toLocaleTimeString("vi-VN")}`}</p>{seenLine}
                   <h3 style={{ marginTop: 10 }}>Khách đã cọc → chốt & lập hợp đồng</h3>
                   <div className="grid2">
                     <label className="f">Số tiền cọc (đ)<input type="number" value={dep.amount} placeholder={String(Math.round(quote.grandTotal * 0.5))} onChange={(e) => setDep({ ...dep, amount: e.target.value })} /></label>

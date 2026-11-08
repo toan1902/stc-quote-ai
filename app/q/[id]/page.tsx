@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import QuoteDoc from "@/components/QuoteDoc";
 import PrintButton from "@/components/PrintButton";
+import ViewPing from "@/components/ViewPing";
 import { readShare } from "@/lib/server/shares";
 import { vnd } from "@/lib/core/words";
 
@@ -28,5 +29,5 @@ export default async function PublicQuote({ params }: { params: Promise<{ id: st
       <a href={`/q/${id}/hop-dong`}>Xem / tải hợp đồng (dự thảo)</a><PrintButton />
     </div>
   );
-  return <QuoteDoc d={rec.payload} toolbar={banner} />;
+  return <><ViewPing id={id} /><QuoteDoc d={rec.payload} toolbar={banner} /></>;
 }

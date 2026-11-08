@@ -63,6 +63,10 @@ export default function Home() {
   }, []);
   // đồng bộ hồ sơ khách giữa điện thoại / máy tính (qua server, chỉ khi đăng nhập)
   const [sync, setSync] = useState<SyncState>({ status: "idle" });
+  type VL = { count: number; last?: string; recent: { t: string; dev: string; page?: string }[] };
+  const [views, setViews] = useState<Record<string, VL>>({});
+  const loadViews = () => { const ids = listProjects().map((p) => p.shareId).filter(Boolean).join(","); if (ids) fetch(`/api/views?ids=${ids}`).then((r) => r.json()).then((j) => setViews(j.views || {})).catch(() => {}); };
+  const ago = (iso?: string) => { if (!iso) return ""; const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 1 ? "vừa xong" : m < 60 ? `${m} phút trước` : m < 1440 ? `${Math.round(m / 60)} giờ trước` : new Date(iso).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" }); };
   const projRef = useRef<Project | null>(null);
   useEffect(() => { projRef.current = project; }, [project]);
   useEffect(() => {
@@ -113,7 +117,9 @@ export default function Home() {
                       <td style={{ textAlign: "right" }}>{settings && catalog.length ? vnd(totalOf(p)) : ""}</td>
                       <td>{p.shareId ? <>{p.shareStatus === "locked" ? <b style={{ color: "var(--green)" }}>ĐÃ CHỐT</b> : "Đang gửi khách"}<br />
                         <a href={`/q/${p.shareId}`} target="_blank" rel="noreferrer">Mở link</a>{" · "}
-                        <a href="#" onClick={(e) => { e.preventDefault(); const u = `${location.origin}/q/${p.shareId}`; navigator.clipboard?.writeText(u).then(() => alert(`Đã chép link:\n${u}`), () => prompt("Chép link này:", u)); }}>📋 Chép link</a></> : <span className="note">chưa tạo</span>}</td>
+                        <a href="#" onClick={(e) => { e.preventDefault(); const u = `${location.origin}/q/${p.shareId}`; navigator.clipboard?.writeText(u).then(() => alert(`Đã chép link:\n${u}`), () => prompt("Chép link này:", u)); }}>📋 Chép link</a><br />
+                        {(() => { const v = views[p.shareId!]; if (!v) return null; if (!v.count) return <span className="note" style={{ color: "#b45309" }}>👁 Khách chưa mở link</span>;
+                          return <span className="note" title={v.recent.map((r) => `${new Date(r.t).toLocaleString("vi-VN")} – ${r.dev}${r.page ? " – xem " + r.page : ""}`).join("\n")} style={{ color: "var(--green)" }}>👁 Khách đã xem {v.count} lần · lần cuối {ago(v.last)} ({v.recent[0]?.dev})</span>; })()}</> : <span className="note">chưa tạo</span>}</td>
                       <td className="note">{p.updatedAt ? new Date(p.updatedAt).toLocaleString("vi-VN") : ""}</td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         <button className="primary" onClick={() => { openProject(p); setShowList(false); }}>{p.shareStatus === "locked" ? "Xem (đã chốt)" : "Mở / Sửa"}</button>{" "}
@@ -204,7 +210,7 @@ export default function Home() {
               window.open("/quote/contract", "_blank"); }}>5. Hợp đồng ↗</span></div>
         <div className="sp" />
         {project && <span className="cur">Đang làm: <b>{project.customer}</b> · {project.address}</span>}
-        <button onClick={() => { setSaved(listProjects()); setShowList(true); syncNow().then(() => setSaved(listProjects())); }}>📁 Hồ sơ khách ({saved.length})</button>
+        <button onClick={() => { setSaved(listProjects()); setShowList(true); loadViews(); syncNow().then(() => { setSaved(listProjects()); loadViews(); }); }}>📁 Hồ sơ khách ({saved.length})</button>
         <button onClick={() => { newCustomer(); setShowList(false); }}>＋ Khách mới</button>
         {health && <span className="note">AI: {health.provider} · {health.model}{!health.configured && <b className="err"> (chưa có key)</b>}</span>}
         <button className="ghost" onClick={() => fetch("/api/logout", { method: "POST" }).then(() => (location.href = "/login"))}>Đăng xuất</button>
