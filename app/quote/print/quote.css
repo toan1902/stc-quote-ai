@@ -143,3 +143,7 @@
 .qroot td.xnote{font-size:9.5px;background:#fffbeb;border:1px solid #f59e0b;color:#78350f;line-height:1.4}
 
 .qroot .why{background:#eef4ff;border:1px solid #c7d7fe}.qroot .why ul{margin:2px 0 0;padding-left:16px;font-size:9.5px;line-height:1.45}.qroot .why .nt{color:#1d3a89}
+
+.qbanner.dark{background:#0f1e3c;border:0;color:#fff;border-radius:10px;line-height:1.55;font-size:14px;box-sizing:border-box}
+.qbanner.dark .y{color:#ffde00}.qbanner.dark .g{color:#86efac}.qbanner.dark .sm{font-size:12px;color:#cbd5e1}
+.qbanner.dark a,.qbanner.dark button{background:transparent;color:#fff;border-color:#fff}

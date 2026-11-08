@@ -15,14 +15,16 @@ export default async function PublicQuote({ params }: { params: Promise<{ id: st
   const rec = await readShare(id);
   if (!rec) notFound();
   const locked = rec.status === "locked";
+  const P = rec.payload.project;
+  const head = <><b className="y">BÁO GIÁ TRỰC TUYẾN</b> · Kính gửi {P.customer} – {P.address} · Ngày lập {P.date} · <b className="y">Hiệu lực 7 ngày</b> (chiết khấu áp dụng tùy thời điểm)<br />CÔNG TY TNHH ĐẦU TƯ VÀ CÔNG NGHỆ STC – Đại lý ủy quyền FPT Smart Home Đắk Lắk · Hotline 0823 047 047</>;
   const banner = locked ? (
-    <div className="qbanner locked">
-      <b>ĐÃ CHỐT BÁO GIÁ</b> · Đã nhận cọc {vnd(rec.deposit?.amount ?? 0)} ngày {rec.deposit?.date} · Hợp đồng số {rec.contractNo}
+    <div className="qbanner dark">
+      <div>{head}<br /><b className="g">ĐÃ CHỐT BÁO GIÁ</b> · Đã nhận cọc {vnd(rec.deposit?.amount ?? 0)} ngày {rec.deposit?.date} · Hợp đồng số {rec.contractNo}</div>
       <a href={`/q/${id}/hop-dong`}>Xem hợp đồng</a><PrintButton />
     </div>
   ) : (
-    <div className="qbanner live">
-      <span><b>Báo giá trực tuyến</b> · cập nhật lần cuối {fmt(rec.updatedAt)} (bản {rec.version}). Link này luôn hiển thị bản mới nhất; giá trị chỉ cố định sau khi Quý khách đặt cọc.</span>
+    <div className="qbanner dark">
+      <div>{head}<br /><span className="sm">Cập nhật lần cuối {fmt(rec.updatedAt)} · link luôn hiển thị bản mới nhất; giá trị cố định sau khi Quý khách đặt cọc.</span></div>
       <PrintButton />
     </div>
   );
