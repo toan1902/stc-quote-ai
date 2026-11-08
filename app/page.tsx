@@ -111,7 +111,9 @@ export default function Home() {
                     <tr key={p.id}>
                       <td><b>{p.customer}</b></td><td>{p.address}</td><td>{p.date}</td>
                       <td style={{ textAlign: "right" }}>{settings && catalog.length ? vnd(totalOf(p)) : ""}</td>
-                      <td>{p.shareId ? (p.shareStatus === "locked" ? <b style={{ color: "var(--green)" }}>ĐÃ CHỐT</b> : "Đang gửi khách") : <span className="note">chưa tạo</span>}</td>
+                      <td>{p.shareId ? <>{p.shareStatus === "locked" ? <b style={{ color: "var(--green)" }}>ĐÃ CHỐT</b> : "Đang gửi khách"}<br />
+                        <a href={`/q/${p.shareId}`} target="_blank" rel="noreferrer">Mở link</a>{" · "}
+                        <a href="#" onClick={(e) => { e.preventDefault(); const u = `${location.origin}/q/${p.shareId}`; navigator.clipboard?.writeText(u).then(() => alert(`Đã chép link:\n${u}`), () => prompt("Chép link này:", u)); }}>📋 Chép link</a></> : <span className="note">chưa tạo</span>}</td>
                       <td className="note">{p.updatedAt ? new Date(p.updatedAt).toLocaleString("vi-VN") : ""}</td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         <button className="primary" onClick={() => { openProject(p); setShowList(false); }}>{p.shareStatus === "locked" ? "Xem (đã chốt)" : "Mở / Sửa"}</button>{" "}
