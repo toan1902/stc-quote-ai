@@ -18,10 +18,17 @@ export const loadCatalog = (): CatalogItem[] => safe(() => {
   }
   return DEFAULT_CATALOG.map((d) => ({ ...d, ...(saved.find((s) => s.code === d.code) ?? {}) }));
 }, DEFAULT_CATALOG);
-export const saveCatalog = (c: CatalogItem[]) => safe(() => (localStorage.setItem("stc_catalog_rev", String(CATALOG_REV)), localStorage.setItem("stc_catalog", JSON.stringify(c.map(({ code, price, discount, salePrice }) => ({ code, price, discount, salePrice }))))), undefined);
+export const saveCatalog = (c: CatalogItem[]) => safe(() => (localStorage.setItem("stc_catalog_rev", String(CATALOG_REV)), localStorage.setItem("stc_catalog", JSON.stringify(c.map(({ code, price, discount, salePrice }) => ({ code, price, discount, salePrice })))), touchConfig()), undefined);
 
 export const loadSettings = (): Settings => safe(() => ({ ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("stc_settings") || "{}") }), DEFAULT_SETTINGS);
-export const saveSettings = (s: Settings) => safe(() => localStorage.setItem("stc_settings", JSON.stringify(s)), undefined);
+export const saveSettings = (s: Settings) => safe(() => (localStorage.setItem("stc_settings", JSON.stringify(s)), touchConfig()), undefined);
+/** Đánh dấu bảng giá/cài đặt vừa đổi trên máy này (để đồng bộ lên server). */
+const touchConfig = () => { localStorage.setItem("stc_config_at", new Date().toISOString()); notify(); };
+
+/** Báo cho bộ đồng bộ biết có thay đổi cần gửi lên. */
+const listeners = new Set<() => void>();
+export const onLocalChange = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
+const notify = () => listeners.forEach((f) => { try { f(); } catch { /* ignore */ } });
 
 /** Hồ sơ khách hàng lưu trên trình duyệt này (mỗi khách 1 hồ sơ, khoá theo id). */
 const PKEY = "stc_projects";
@@ -35,11 +42,35 @@ const readAll = (): Record<string, Project> => safe(() => {
 export const listProjects = (): Project[] => Object.values(readAll()).sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
 export const getProject = (id: string): Project | null => readAll()[id] ?? null;
 /** Returns false when the browser storage is full. */
+const sameContent = (a: Project, b: Project) => JSON.stringify({ ...a, updatedAt: "" }) === JSON.stringify({ ...b, updatedAt: "" });
 export const saveProject = (p: Project): boolean => {
-  try { const all = readAll(); all[p.id] = { ...p, updatedAt: new Date().toISOString() }; localStorage.setItem(PKEY, JSON.stringify(all)); return true; }
+  try {
+    const all = readAll(); const cur = all[p.id];
+    if (cur && sameContent(cur, p)) return true; // chỉ mở xem → không đổi giờ sửa (tránh đè bản mới hơn ở máy khác)
+    all[p.id] = { ...p, updatedAt: new Date().toISOString() }; localStorage.setItem(PKEY, JSON.stringify(all)); notify(); return true;
+  }
   catch { return false; }
 };
-export const deleteProject = (id: string) => safe(() => { const all = readAll(); delete all[id]; localStorage.setItem(PKEY, JSON.stringify(all)); }, undefined);
+export const deleteProject = (id: string) => safe(() => {
+  const all = readAll(); delete all[id]; localStorage.setItem(PKEY, JSON.stringify(all));
+  const t = readTombs(); t[id] = new Date().toISOString(); localStorage.setItem(TKEY, JSON.stringify(t)); notify();
+}, undefined);
+
+/* ---- dùng cho đồng bộ (lib/client/sync.ts) ---- */
+const TKEY = "stc_tombstones";
+export const readTombs = (): Record<string, string> => safe(() => JSON.parse(localStorage.getItem(TKEY) || "{}"), {});
+export const writeTombs = (t: Record<string, string>) => safe(() => localStorage.setItem(TKEY, JSON.stringify(t)), undefined);
+export const rawProjects = readAll;
+export const writeRawProjects = (all: Record<string, Project>) => { localStorage.setItem(PKEY, JSON.stringify(all)); };
+export interface LocalConfig { updatedAt: string; catalog: unknown; catalogRev: string | null; settings: unknown }
+export const readLocalConfig = (): LocalConfig | null => safe(() => {
+  const at = localStorage.getItem("stc_config_at"); if (!at) return null;
+  return { updatedAt: at, catalog: JSON.parse(localStorage.getItem("stc_catalog") || "null"), catalogRev: localStorage.getItem("stc_catalog_rev"), settings: JSON.parse(localStorage.getItem("stc_settings") || "null") };
+}, null);
+export const writeLocalConfig = (c: LocalConfig) => safe(() => {
+  if (c.catalog) localStorage.setItem("stc_catalog", JSON.stringify(c.catalog)); if (c.catalogRev) localStorage.setItem("stc_catalog_rev", c.catalogRev);
+  if (c.settings) localStorage.setItem("stc_settings", JSON.stringify(c.settings)); localStorage.setItem("stc_config_at", c.updatedAt);
+}, undefined);
 
 export function download(name: string, data: BlobPart, type: string) {
   const url = URL.createObjectURL(new Blob([data], { type }));
@@ -65,8 +96,9 @@ export function restoreBackup(b: Backup, withPrices: boolean): { added: number; 
     const cur = all[p.id];
     if (!cur) { all[p.id] = p; added++; } else if ((p.updatedAt || "") > (cur.updatedAt || "")) { all[p.id] = p; updated++; } else kept++;
   }
-  localStorage.setItem(PKEY, JSON.stringify(all));
+  localStorage.setItem(PKEY, JSON.stringify(all)); notify();
   if (b.catalog && (withPrices || !localStorage.getItem("stc_catalog"))) { localStorage.setItem("stc_catalog", JSON.stringify(b.catalog)); if (b.catalogRev) localStorage.setItem("stc_catalog_rev", b.catalogRev); }
   if (b.settings && (withPrices || !localStorage.getItem("stc_settings"))) localStorage.setItem("stc_settings", JSON.stringify(b.settings));
+  if (withPrices) touchConfig();
   return { added, updated, kept };
 }

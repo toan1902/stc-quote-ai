@@ -8,8 +8,9 @@ import { importTakeoff, validateTakeoff } from "@/lib/core/takeoff";
 import { newId } from "@/lib/core/merge";
 import { loadPdf, type PdfDoc } from "@/lib/client/pdf";
 import { analyseStructure, countDevices, COUNT_DISCIPLINES } from "@/lib/client/pipeline";
-import { deleteProject, download, listProjects, makeBackup, restoreBackup, type Backup, loadCatalog, loadSettings, saveCatalog, saveProject, saveSettings, slug } from "@/lib/client/store";
+import { deleteProject, download, getProject, listProjects, makeBackup, restoreBackup, type Backup, loadCatalog, loadSettings, saveCatalog, saveProject, saveSettings, slug } from "@/lib/client/store";
 import { exportTakeoff } from "@/lib/core/takeoff";
+import { startAutoSync, subscribeSync, syncNow, type SyncState } from "@/lib/client/sync";
 import { vnd } from "@/lib/core/words";
 import ReviewCanvas from "@/components/ReviewCanvas";
 import BoqPanel from "@/components/BoqPanel";
@@ -60,6 +61,20 @@ export default function Home() {
     setCatalog(loadCatalog()); setSettings(loadSettings()); setSaved(listProjects());
     fetch("/api/health").then((r) => r.json()).then(setHealth).catch(() => {});
   }, []);
+  // đồng bộ hồ sơ khách giữa điện thoại / máy tính (qua server, chỉ khi đăng nhập)
+  const [sync, setSync] = useState<SyncState>({ status: "idle" });
+  const projRef = useRef<Project | null>(null);
+  useEffect(() => { projRef.current = project; }, [project]);
+  useEffect(() => {
+    const unsub = subscribeSync(setSync);
+    const stop = startAutoSync(() => {
+      setSaved(listProjects()); setCatalog(loadCatalog()); setSettings(loadSettings());
+      const cur = projRef.current; if (!cur) return;
+      const st = getProject(cur.id); // máy khác vừa sửa hồ sơ đang mở → lấy bản mới
+      if (st && JSON.stringify({ ...st, updatedAt: "" }) !== JSON.stringify({ ...cur, updatedAt: "" })) setProject(st);
+    });
+    return () => { unsub(); stop(); };
+  }, []);
   // every change is saved into this customer's own record (never overwrites another customer)
   useEffect(() => { if (project) { setStorageFull(!saveProject(project)); } }, [project]);
   useEffect(() => { if (step === 0) setSaved(listProjects()); }, [step]);
@@ -69,7 +84,8 @@ export default function Home() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <h2 style={{ margin: 0 }}>Hồ sơ khách hàng ({saved.length})</h2>
                 <input placeholder="Tìm tên khách / địa chỉ…" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 260 }} />
-                <span className="note">Lưu trên trình duyệt máy này. Mỗi khách 1 hồ sơ riêng – sửa khách này không ảnh hưởng khách khác.</span>
+                <span className="note">Mỗi khách 1 hồ sơ riêng. {sync.status === "ok" ? <b style={{ color: "var(--green)" }}>☁ Đã đồng bộ mọi máy ({new Date(sync.at!).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })})</b> : sync.status === "syncing" ? "☁ Đang đồng bộ…" : sync.status === "error" ? <b style={{ color: "var(--red, #c00)" }}>☁ Chưa đồng bộ được: {sync.msg}</b> : sync.status === "off" ? "Chỉ lưu trên máy này (chưa bật kho lưu trữ)." : ""}</span>
+                <button className="ghost" disabled={sync.status === "syncing"} onClick={() => syncNow().then(() => setSaved(listProjects()))}>⟳ Đồng bộ</button>
                 <span style={{ flex: 1 }} />
                 <button onClick={() => { const b = makeBackup(); const d = new Date(); download(`SAOLUU_STC_QUOTE_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}_${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}.json`, JSON.stringify(b), "application/json"); localStorage.setItem("stc_last_backup", b.at); setSaved(listProjects()); }}>💾 Sao lưu toàn bộ</button>
                 <label className="btn ghost" style={{ cursor: "pointer" }}>♻ Khôi phục từ file sao lưu
@@ -85,7 +101,7 @@ export default function Home() {
                   }} /></label>
               </div>
               <div className="note" style={{ marginTop: 6 }}>
-                {(() => { const last = typeof window !== "undefined" ? localStorage.getItem("stc_last_backup") : null; const days = last ? Math.floor((Date.now() - Date.parse(last)) / 864e5) : null;
+                {sync.status === "ok" ? <>Hồ sơ đã lưu trên server, mở app ở điện thoại hay máy tính đều thấy. Vẫn nên “💾 Sao lưu toàn bộ” mỗi tháng để giữ 1 bản dự phòng.</> : (() => { const last = typeof window !== "undefined" ? localStorage.getItem("stc_last_backup") : null; const days = last ? Math.floor((Date.now() - Date.parse(last)) / 864e5) : null;
                   return last ? <>Sao lưu gần nhất: <b>{new Date(last).toLocaleString("vi-VN")}</b>{days! >= 7 && <b className="err"> – đã {days} ngày, nên sao lưu lại</b>}</> : <b className="err">Chưa sao lưu lần nào – hồ sơ chỉ nằm trên trình duyệt này, xoá lịch sử duyệt web là mất. Bấm “💾 Sao lưu toàn bộ”.</b>; })()}
               </div>
               {saved.length === 0 ? <p className="note">Chưa có hồ sơ nào.</p> : (
@@ -100,7 +116,7 @@ export default function Home() {
                       <td style={{ whiteSpace: "nowrap" }}>
                         <button className="primary" onClick={() => { openProject(p); setShowList(false); }}>{p.shareStatus === "locked" ? "Xem (đã chốt)" : "Mở / Sửa"}</button>{" "}
                         <button onClick={() => download(`HOSO_${slug(p.customer)}_${slug(p.address)}.json`, JSON.stringify(exportTakeoff(p), null, 1), "application/json")}>Tải hồ sơ</button>{" "}
-                        <button className="ghost" onClick={() => { if (confirm(`Xoá hồ sơ “${p.customer} – ${p.address}” khỏi máy này?${p.shareId ? "\nLink online của khách vẫn còn; muốn sửa lại cần file HOSO đã tải." : ""}`)) { deleteProject(p.id); setSaved(listProjects()); } }}>Xoá</button>
+                        <button className="ghost" onClick={() => { if (confirm(`Xoá hồ sơ “${p.customer} – ${p.address}” trên MỌI máy (điện thoại + máy tính)?${p.shareId ? "\nLink online gửi khách vẫn còn nhưng sẽ không sửa được nữa." : ""}`)) { deleteProject(p.id); setSaved(listProjects()); } }}>Xoá</button>
                       </td>
                     </tr>))}</tbody>
                 </table>
@@ -186,7 +202,7 @@ export default function Home() {
               window.open("/quote/contract", "_blank"); }}>5. Hợp đồng ↗</span></div>
         <div className="sp" />
         {project && <span className="cur">Đang làm: <b>{project.customer}</b> · {project.address}</span>}
-        <button onClick={() => { setSaved(listProjects()); setShowList(true); }}>📁 Hồ sơ khách ({saved.length})</button>
+        <button onClick={() => { setSaved(listProjects()); setShowList(true); syncNow().then(() => setSaved(listProjects())); }}>📁 Hồ sơ khách ({saved.length})</button>
         <button onClick={() => { newCustomer(); setShowList(false); }}>＋ Khách mới</button>
         {health && <span className="note">AI: {health.provider} · {health.model}{!health.configured && <b className="err"> (chưa có key)</b>}</span>}
         <button className="ghost" onClick={() => fetch("/api/logout", { method: "POST" }).then(() => (location.href = "/login"))}>Đăng xuất</button>
