@@ -9,7 +9,7 @@ const dots = "……………………………………";
 
 /** Hợp đồng cung cấp & lắp đặt – sinh từ báo giá đã chốt (sau khi khách đặt cọc). */
 export interface PartyA { phone?: string; cccd?: string; cccdDate?: string; cccdPlace?: string; rep?: string }
-export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { payload: PrintPayload; deposit?: Deposit | null; contractNo?: string; lockedAt?: string }; backHref?: string; partyA?: PartyA; draft?: boolean }) {
+export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { payload: PrintPayload; deposit?: Deposit | null; contractNo?: string; lockedAt?: string }; backHref?: string; partyA?: PartyA; draft?: boolean | string }) {
   const { payload: d } = rec;
   const dep: Deposit = rec.deposit ?? { amount: 0, date: "", method: "" };
   const hasDep = dep.amount > 0;
@@ -32,7 +32,7 @@ export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { p
   return (
     <div className="ctr">
       <div className="noprint bar">{backHref && <a href={backHref}>← Xem báo giá</a>}<PrintButton label="In / Lưu PDF hợp đồng" /></div>
-      {draft && <div className="noprint" style={{ maxWidth: 794, margin: "0 auto 8px", color: "#b45309", fontSize: 13 }}>Bản soạn thảo – thông tin lấy tự động theo báo giá đang mở trong app. Số liệu cọc/CCCD nhập ở ô phía trên.</div>}
+      {draft && <div className="noprint" style={{ maxWidth: 794, margin: "0 auto 8px", color: "#b45309", fontSize: 13 }}>{typeof draft === "string" ? draft : "Bản soạn thảo – thông tin lấy tự động theo báo giá đang mở trong app. Số liệu cọc/CCCD nhập ở ô phía trên."}</div>}
       <article className="a4">
         <div className="qh"><b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br /><u><b>Độc lập – Tự do – Hạnh phúc</b></u></div>
         <h1>HỢP ĐỒNG CUNG CẤP VÀ LẮP ĐẶT<br />THIẾT BỊ NHÀ THÔNG MINH{hasLight && <> &amp; CHIẾU SÁNG</>}</h1>

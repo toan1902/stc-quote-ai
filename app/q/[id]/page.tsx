@@ -20,12 +20,12 @@ export default async function PublicQuote({ params }: { params: Promise<{ id: st
   const banner = locked ? (
     <div className="qbanner dark">
       <div>{head}<br /><b className="g">ĐÃ CHỐT BÁO GIÁ</b> · Đã nhận cọc {vnd(rec.deposit?.amount ?? 0)} ngày {rec.deposit?.date} · Hợp đồng số {rec.contractNo}</div>
-      <a href={`/q/${id}/hop-dong`}>Xem hợp đồng</a><PrintButton />
+      <a href={`/q/${id}/hop-dong`}>Xem / tải hợp đồng</a><PrintButton />
     </div>
   ) : (
     <div className="qbanner dark">
       <div>{head}<br /><span className="sm">Cập nhật lần cuối {fmt(rec.updatedAt)} · link luôn hiển thị bản mới nhất; giá trị cố định sau khi Quý khách đặt cọc.</span></div>
-      <PrintButton />
+      <a href={`/q/${id}/hop-dong`}>Xem / tải hợp đồng (dự thảo)</a><PrintButton />
     </div>
   );
   return <QuoteDoc d={rec.payload} toolbar={banner} />;

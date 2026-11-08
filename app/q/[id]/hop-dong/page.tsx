@@ -10,7 +10,8 @@ export default async function Contract({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const rec = await readShare(id);
   if (!rec) notFound();
+  // chưa chốt: cho khách xem/tải bản DỰ THẢO theo báo giá hiện tại (chưa có cọc, số HĐ)
   if (rec.status !== "locked" || !rec.deposit || !rec.contractNo)
-    return <p style={{ padding: 40, fontFamily: "sans-serif" }}>Hợp đồng chỉ được lập sau khi báo giá đã chốt (khách đã đặt cọc). <a href={`/q/${id}`}>Xem báo giá</a></p>;
+    return <ContractDoc draft="BẢN DỰ THẢO – nội dung lấy theo báo giá hiện tại. Hợp đồng chính thức (số hợp đồng, tiền cọc, thông tin CCCD) được lập khi Quý khách đặt cọc." rec={{ payload: rec.payload }} backHref={`/q/${id}`} />;
   return <ContractDoc rec={{ payload: rec.payload, deposit: rec.deposit, contractNo: rec.contractNo, lockedAt: rec.lockedAt! }} backHref={`/q/${id}`} />;
 }
