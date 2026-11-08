@@ -1,4 +1,4 @@
-import type { CatalogItem, Settings } from "./types.ts";
+import type { CatalogItem, Proposal, Settings } from "./types.ts";
 import type { BOQResult } from "./boq.ts";
 import { qtyOf } from "./boq.ts";
 import { SECTIONS, applySwitchShape } from "./catalog.ts";
@@ -13,9 +13,13 @@ export interface Quote {
   /** nâng cấp toàn bộ đèn thường AB → đèn thông minh FPT: số bộ và chi phí thêm (sau chiết khấu) */
   upgrade: { qty: number; extra: number };
   grandNiem: number; grandGiam: number; grandTotal: number; grandWords: string;
+  /** đề xuất thêm – KHÔNG cộng vào tổng; mỗi nhóm có tổng dự kiến (sau giảm giá + lắp đặt) */
+  proposals: ProposalGroup[];
 }
+export interface ProposalLine extends QuoteLine { install: number; est: number; note?: string }
+export interface ProposalGroup { group: string; lines: ProposalLine[]; niem: number; est: number }
 
-export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Settings, overrides: Record<string, number> = {}): Quote {
+export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Settings, overrides: Record<string, number> = {}, props: Proposal[] = []): Quote {
   const catalog = applySwitchShape(catalog0, s.switchShape);
   const cat = (code: string) => catalog.find((c) => c.code === code)!;
   const q = (code: string) => overrides[code] ?? qtyOf(boq, code);
@@ -77,7 +81,20 @@ export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Setting
   const lTotal = lNiem - lCk + lInstall;
 
   const grandTotal = shTotal + lTotal;
+  // đề xuất thêm: đèn tính chiết khấu chiếu sáng (lắp 0đ theo cài đặt), thiết bị Smart Home tính giảm giá + 15% lắp đặt
+  const groups = new Map<string, ProposalGroup>();
+  for (const p of props) {
+    const c = catalog.find((x) => x.code === p.code); if (!c || !(p.qty > 0)) continue;
+    const isLight = c.section === "light";
+    const after = isLight ? Math.round(c.price * (1 - s.lightDiscount)) : c.salePrice != null && c.salePrice > 0 ? c.salePrice : Math.round(c.price * (1 - c.discount));
+    const install = Math.round(c.price * (isLight ? s.lightInstall : c.freeInstall ? 0 : s.installRate)) * p.qty;
+    const line: ProposalLine = { ...c, qty: p.qty, after, total: after * p.qty, listTotal: c.price * p.qty, install, est: after * p.qty + install, note: p.note };
+    const g = p.group?.trim() || "Hạng mục đề xuất thêm";
+    const G = groups.get(g) ?? { group: g, lines: [], niem: 0, est: 0 };
+    G.lines.push(line); G.niem += line.listTotal; G.est += line.est; groups.set(g, G);
+  }
   return {
+    proposals: [...groups.values()],
     sections, niem, giam, sau, lapDat, kmLapDat, freeList, shTotal, shWords: docSo(shTotal),
     lightLines, lNiem, lCk, lInstall, lTotal, upgrade,
     grandNiem: niem + lNiem, grandGiam: giam - lCk, grandTotal, grandWords: docSo(grandTotal),

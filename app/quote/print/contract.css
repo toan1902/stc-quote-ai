@@ -30,7 +30,7 @@
 @page{size:A4;margin:0}
 @media print{
   .ctr{background:#fff;padding:0}
-  .ctr .noprint{display:none}
+  .ctr .noprint,.noprint{display:none!important}
   .ctr .a4{margin:0;min-height:auto;page-break-after:always}
   .ctr .a4:last-child{page-break-after:auto}
 }

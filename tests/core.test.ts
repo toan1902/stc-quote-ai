@@ -275,3 +275,15 @@ test("Công tắc CHỮ NHẬT + rèm + cảm biến thêm tay (Anh Hiếu, Ea N
   assert.equal(q2.grandTotal - q.grandTotal, 5 * 1047200 + Math.round(5 * 1309000 * 0.15));
   assert.ok(q2.sections.some((x) => x.key === "sensor"));
 });
+
+test("Đề xuất thêm: hiện theo nhóm, KHÔNG cộng vào tổng (Anh Hiếu: 2 phương án đèn + cảm biến)", () => {
+  const t = JSON.parse(readFileSync(new URL("./fixtures/anh-hieu.takeoff.json", import.meta.url), "utf8")) as TakeoffJSON;
+  const p = importTakeoff(t, "08/11/2026");
+  const s = { ...DEFAULT_SETTINGS, ...(p.options ?? {}) };
+  const q = computeQuote(buildBOQ(p, s), DEFAULT_CATALOG, s, p.extras as Record<string, number>, p.proposals);
+  assert.equal(q.grandTotal, 47112450);
+  const g = Object.fromEntries(q.proposals.map((x) => [x.group, x.est]));
+  assert.equal(g["Phương án A – đèn thường AB"], 14497600);
+  assert.equal(g["Phương án B – đèn thông minh FPT"], 25396800);
+  assert.equal(g["Cảm biến hiện diện nhà vệ sinh"], 5 * 1047200 + Math.round(1309000 * 0.15) * 5);
+});

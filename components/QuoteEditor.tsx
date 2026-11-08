@@ -39,6 +39,9 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
     if (v == null) delete next[key]; else next[key] = Math.max(0, Math.round(v));
     onProject({ extras: next });
   };
+  const shaped = applySwitchShape(catalog, settings.switchShape);
+  const setProp = (i: number, patch: Partial<NonNullable<Project["proposals"]>[number]>) =>
+    onProject({ proposals: (project.proposals ?? []).map((p, k) => (k === i ? { ...p, ...patch } : p)) });
   const manualKeys = Object.keys(ex).filter((k) => k !== "gate_ab");
   const shown = new Set(quote.sections.flatMap((s) => s.lines).map((l) => okey(l)).concat(quote.lightLines.map((l) => okey(l))));
   const addable = applySwitchShape(catalog, settings.switchShape).filter((c) => c.price > 0 && c.code !== "gate_ab" && c.code !== (settings.hubModel === "hub_pb650" ? "hub" : "hub_pb650") && !shown.has(okey(c)));
@@ -186,6 +189,21 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
           </div>
           {gateN > 0 && !(gate?.price) && <p className="warn">Nhập đơn giá bộ cổng AB – chưa có giá thì cổng chưa được đưa vào báo giá.</p>}
           {gateN > 0 && !!gate?.price && <p className="note">Báo giá tự thêm {gateN} công tắc điều khiển cổng FPT (mở cổng qua app/kịch bản) và 1 trang “Dự toán cổng tự động AB Gate”. Lắp đặt, cài hành trình cổng: <b>miễn phí</b> khi chọn hệ sinh thái FPT Smart Home. Chưa gồm pin Lithium, xây hố/đế âm sàn, thoát nước, đường điện tới chân cổng.</p>}
+          <h3 style={{ margin: "14px 0 6px" }}>Hạng mục ĐỀ XUẤT – hiện trên báo giá, KHÔNG cộng vào tổng</h3>
+          <p className="note">Dùng cho phương án chiếu sáng, cảm biến… để khách tham khảo. Không vào hợp đồng. Nhóm cùng tên được cộng tổng dự kiến riêng.</p>
+          {(project.proposals ?? []).length > 0 && <table className="t"><thead><tr><th>Nhóm</th><th>Hạng mục</th><th>SL</th><th /></tr></thead><tbody>
+            {(project.proposals ?? []).map((p, i) => { const c = shaped.find((x) => x.code === p.code); return (
+              <tr key={i}><td><input value={p.group ?? ""} placeholder="vd: Phương án A – đèn thường AB" style={{ width: 210 }} onChange={(e) => setProp(i, { group: e.target.value })} /></td>
+                <td>{c?.name ?? p.code}</td>
+                <td><input type="number" min={0} value={p.qty} style={{ width: 64 }} onChange={(e) => setProp(i, { qty: Number(e.target.value) || 0 })} /></td>
+                <td><button className="ghost" onClick={() => onProject({ proposals: (project.proposals ?? []).filter((_, k) => k !== i) })}>Xoá</button></td></tr>); })}
+          </tbody></table>}
+          <select value="" style={{ maxWidth: 380 }} onChange={(e) => { const code = e.target.value; if (!code) return; const c = shaped.find((x) => x.code === code);
+            onProject({ proposals: [...(project.proposals ?? []), { code, qty: 1, group: c?.section === "light" ? "Phương án chiếu sáng" : "Hạng mục đề xuất thêm" }] }); }}>
+            <option value="">＋ Thêm hạng mục đề xuất…</option>
+            {shaped.filter((c) => c.price > 0).map((c) => <option key={c.code} value={c.code}>{c.name} – {c.price.toLocaleString("vi-VN")}đ</option>)}
+          </select>
+          {quote.proposals.map((g) => <div key={g.group} className="note">• {g.group}: dự kiến <b>{g.est.toLocaleString("vi-VN")}đ</b> (chưa tính vào tổng)</div>)}
           </fieldset>
         </div>
       </div>
@@ -205,6 +223,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
           {checks.some((c) => c.severity !== "info") && <p className="warn">Còn {checks.filter((c) => c.severity !== "info").length} cảnh báo đối soát – sẽ được ghi vào ghi chú báo giá.</p>}
           {!reviewed && <p className="err">Cần mở bước Duyệt BOQ trước khi xuất (Nguyên tắc IV).</p>}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+            <button disabled={!reviewed} title="Soạn hợp đồng tự động theo báo giá này (nhập cọc, CCCD rồi in)" onClick={() => { localStorage.setItem("stc_print", JSON.stringify(payload())); window.open("/quote/contract", "_blank"); }}>📄 Soạn hợp đồng</button>
             <button className="primary" disabled={!reviewed || busyPdf} onClick={printPdf}>{busyPdf ? "Đang dựng bản vẽ đề xuất…" : `In / Lưu PDF${settings.includeProposal && propN ? " (kèm bản vẽ đề xuất)" : " 7 trang"}`}</button>
             <button disabled={!reviewed} onClick={excel}>Tải Excel</button>
             <button disabled={!reviewed} onClick={async () => download(`BOQ_KY_THUAT_${slug(project.customer)}.xlsx`, await buildTechBoq(project, boq), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}>Tải BOQ kỹ thuật</button>

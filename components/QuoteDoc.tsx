@@ -41,7 +41,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   const swN = boq.switches.length, swQ = qn("sw1", "sw2", "sw3", "sw4");
   const camN = qn("cam_in", "cam_out"), curN = qn("curtain_motor"), railM = qn("rail");
   const irN = qn("ir"), hubN = qn("hub", "hub_pb650"), zbN = qn("zigbee"), doorN = gateSwOnly(q);
-  const irRows = Array.from({ length: irN }, (_, i) => ({ room: boq.acRooms[i] ?? `Điều hòa ${i + 1}`, floor: boq.acFloors?.[i] ?? boq.acFloors?.[0] ?? "Tầng 1" }));
+  const irRows = Array.from({ length: irN }, (_, i) => ({ room: boq.acRooms[i] ?? `Điều hòa ${i + 1}`, floor: boq.acFloors?.[i] ?? boq.acFloors?.[0] ?? boq.floors[0] ?? "Tầng 1" }));
   const camRows = [...boq.cameras.map((c) => ({ floor: c.floor || "Tầng 1", room: c.room || "", out: c.type === "camera_outdoor" }))];
   for (const [code, out] of [["cam_out", true], ["cam_in", false]] as const) { let extra = qn(code) - camRows.filter((c) => c.out === out).length; while (extra-- > 0) camRows.push({ floor: "", room: "vị trí bổ sung (thống nhất khi khảo sát)", out }); }
   const camList = camRows.filter((c, i) => camRows.slice(0, i + 1).filter((x) => x.out === c.out).length <= qn(c.out ? "cam_out" : "cam_in"));
@@ -52,6 +52,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   const smartN = q.lightLines.filter((l) => l.smart).reduce((a, l) => a + l.qty, 0);
   const plainN = lightN - smartN;
   const noL = q.lightLines.length === 0;
+  const lightProps = (q.proposals ?? []).filter((g) => g.lines.some((l) => l.section === "light"));
   const lightTitle = !plainN ? "Smart Lighting – Đèn thông minh FPT" : !smartN ? "Chiếu sáng – đèn LED THƯỜNG thương hiệu AB" : "Chiếu sáng – đèn thông minh FPT + đèn LED thường AB";
   const lightKind = (l: { smart?: boolean }) => (l.smart ? <span className="smt">ĐÈN THÔNG MINH FPT</span> : <span className="nrm">ĐÈN THƯỜNG</span>);
   const upg = q.upgrade ?? { qty: 0, extra: 0 };
@@ -74,18 +75,20 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
       {/* 1. TỔNG HỢP */}
       <section className="page"><Head right={`BẢNG TỔNG HỢP BÁO GIÁ | ${kh}`} />
         <h1>BẢNG TỔNG HỢP BÁO GIÁ GIẢI PHÁP NHÀ THÔNG MINH</h1>
-        <Info kh={kh} dc={dc} r1={<><b>Ngày lập báo giá:</b> {P.date}</>} r2={<><b>Hiệu lực báo giá:</b> 30 ngày kể từ ngày lập</>} />
+        <Info kh={kh} dc={dc} r1={<><b>Ngày lập báo giá:</b> {P.date}</>} r2={<><b>Hiệu lực báo giá:</b> 7 ngày kể từ ngày lập</>} />
         <table className="t sum"><thead><tr><th style={{ width: "5%" }}>STT</th><th>Hạng mục báo giá</th><th style={{ width: "13%" }}>Thiết bị niêm yết (đ)</th><th style={{ width: "12%" }}>Giảm giá (đ)</th><th style={{ width: "11%" }}>Lắp đặt (đ)</th><th style={{ width: "13%" }}>Tổng cộng (đ)</th><th style={{ width: "9%" }}>Chi tiết</th></tr></thead>
           <tbody>
             <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swQ} công tắc cảm ứng, {hubN > 1 ? `${hubN} ` : ""}bộ trung tâm {hubName}{zbN ? " + mở rộng sóng ZigBee" : ""}{doorN ? `, ${doorN} công tắc cửa cuốn` : ""}{irN ? `, ${irN} bộ IR điều hòa` : ""}{gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
               <td className="r">{vnd(q.niem)}</td><td className="r">{vnd(q.giam)}</td><td className="r">{vnd(q.lapDat)}</td><td className="r b">{vnd(q.shTotal)}</td><td className="c">Phần 1<br />(4 trang)</td></tr>
-{noL ? <tr><td className="c">2</td><td><div className="it">Chiếu sáng</div><div className="ds">Chưa báo giá – bản vẽ chưa có mặt bằng chiếu sáng. STC bổ sung khi nhận bản vẽ đèn.</div></td><td className="r">–</td><td className="r">–</td><td className="r">–</td><td className="r">–</td><td className="c">Bổ sung sau</td></tr> :             <tr><td className="c">2</td><td><div className="it">{lightTitle}</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng){plainN > 0 ? ". Đèn thường: bật/tắt theo mạch qua công tắc FPT, không chỉnh sáng/màu từng đèn." : "."}</div></td>
+{noL ? <tr><td className="c">2</td><td>{lightProps.length ? <><div className="it">Chiếu sáng – ĐỀ XUẤT (chưa tính vào tổng)</div><div className="ds">{lightProps.map((g) => `${g.group}: ${vnd(g.est)}đ`).join("; ")} – xem trang Đề xuất thêm.</div></> : <><div className="it">Chiếu sáng</div><div className="ds">Chưa báo giá – bản vẽ chưa có mặt bằng chiếu sáng. STC bổ sung khi nhận bản vẽ đèn.</div></>}</td><td className="r">–</td><td className="r">–</td><td className="r">–</td><td className="r">–</td><td className="c">{lightProps.length ? "Đề xuất" : "Bổ sung sau"}</td></tr> :             <tr><td className="c">2</td><td><div className="it">{lightTitle}</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng){plainN > 0 ? ". Đèn thường: bật/tắt theo mạch qua công tắc FPT, không chỉnh sáng/màu từng đèn." : "."}</div></td>
               <td className="r">{vnd(q.lNiem)}</td><td className="r">{vnd(-q.lCk)}</td><td className="r">{vnd(q.lInstall)}{!q.lInstall && <><br /><span className="gr sm">(thợ điện lắp)</span></>}</td><td className="r b">{vnd(q.lTotal)}</td><td className="c">Phần 2<br />(2 trang)</td></tr>}
             <tr className="tot"><td colSpan={2}>{noL ? "TỔNG GIÁ TRỊ BÁO GIÁ" : "TỔNG GIÁ TRỊ 2 HẠNG MỤC"}</td><td className="r">{vnd(q.grandNiem)}</td><td className="r">{vnd(q.grandGiam)}</td><td className="r">{vnd(q.lapDat + q.lInstall)}</td><td className="r red">{vnd(q.grandTotal)}</td><td /></tr>
           </tbody></table>
         <div className="box grand"><div className="gl"><span>{noL ? "TỔNG CỘNG:" : "TỔNG CỘNG 2 HẠNG MỤC:"}</span><span>{vnd(q.grandTotal)}</span></div><div className="bc"><b>Bằng chữ:</b> {q.grandWords}</div></div>
         <div className="box note"><div className="nt">GHI CHÚ:</div><ul>
           {plainNote && <li>{plainNote}</li>}
+          {(q.proposals ?? []).map((g) => <li key={g.group}><b>Đề xuất thêm – {g.group}:</b> dự kiến {vnd(g.est)}đ (chưa tính vào tổng, xem trang Đề xuất thêm).</li>)}
+          <li><b>Hiệu lực báo giá 7 ngày</b> kể từ ngày lập. Chính sách chiết khấu áp dụng tùy thời điểm – hết hiệu lực, đơn giá và mức chiết khấu được cập nhật theo chương trình hiện hành.</li>
           <li>Chi tiết từng hạng mục xem ở các phần báo giá riêng đính kèm phía sau (Phần 1 – Smart Home, Phần 2 – Chiếu sáng).</li>
           <li>Số lượng thiết bị bóc tách từ hồ sơ thiết kế điện công trình{P.sourceName ? ` (${P.sourceName})` : ""}; khối lượng ghi “ước tính” cần đo lại thực tế.</li>
           {excl && <li>Chiếu sáng: phí lắp đặt 0đ – đèn do thợ điện công trình lắp đặt. Chưa bao gồm {excl}.</li>}
@@ -201,11 +204,29 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
             {hubN > 0 && <tr><td className="c">{irN + 1}</td><td>{boq.floors.join(", ") || "Tầng 1"}</td><td>{hubN > 1 ? "Mỗi khu vực 1 bộ" : "Phòng khách"}</td><td><b>Bộ trung tâm {hubName}</b></td><td className="c"><b>{hubN}</b></td><td>Trung tâm điều khiển toàn bộ hệ thống</td></tr>}
             {zbN > 0 && <tr><td className="c">{irN + 2}</td><td>{boq.floors.join(", ") || "Tầng 1"}</td><td>Vùng sóng yếu</td><td><b>Mở rộng sóng ZigBee 3.0</b></td><td className="c"><b>{zbN}</b></td><td>Phủ sóng ổn định cho các tầng/khu xa trung tâm</td></tr>}
             {doorN > 0 && <tr><td className="c">{irN + 3}</td><td>{boq.floors[0] ?? "Tầng 1"}</td><td>Cửa cuốn / cổng</td><td><b>Công tắc điều khiển cửa cuốn</b></td><td className="c"><b>{doorN}</b></td><td>Đóng/mở/dừng cửa cuốn qua app, hẹn giờ, cảnh báo quên đóng</td></tr>}</tbody></table></div>
+        <div className="box why"><div className="nt">VÌ SAO NÊN CHỌN FPT SMART HOME?</div><ul><li><b>Thương hiệu Việt Nam – Tập đoàn FPT:</b> app và điều khiển giọng nói tiếng Việt, thiết kế cho nhà Việt; linh kiện, bảo hành có sẵn trong nước, không lo hàng xách tay, hết hỗ trợ.</li><li><b>Vẫn chạy khi mất Internet:</b> chuẩn Bluetooth Mesh xử lý nội mạng tại bộ trung tâm; công tắc vẫn bấm tay như công tắc thường – không phụ thuộc wifi hay máy chủ nước ngoài.</li><li><b>An toàn, bền cho gia đình:</b> mặt kính cường lực cách điện, tay ướt chạm vẫn an toàn; tải 300W/kênh, hàng chính hãng mới 100%.</li><li><b>Mở rộng dần, không phải làm lại:</b> hôm nay công tắc, rèm, điều hòa; sau thêm cảm biến, camera, khóa cửa, cổng – cùng một app FPT Life, không thay hệ thống.</li><li><b>Tiết kiệm điện, chi phí hợp lý:</b> tự tắt đèn, điều hòa khi không có người; giá thiết bị thương hiệu Việt, lắp đặt trọn gói minh bạch theo báo giá.</li><li><b>Hỗ trợ tại chỗ ở Đắk Lắk:</b> STC là đại lý ủy quyền FPT Smart Home: bảo hành 24 tháng tận nơi, cài kịch bản theo thói quen gia đình, phần mềm FPT Life miễn phí trọn đời.</li></ul></div>
         <div className="box note"><div className="nt">QUY CHUẨN THI CÔNG, DỊCH VỤ &amp; ĐIỀU KHOẢN THƯƠNG MẠI CỦA CÔNG TY TNHH ĐẦU TƯ VÀ CÔNG NGHỆ STC:</div><ul>
           <li><b>Phạm vi dịch vụ:</b> Lắp đặt toàn bộ thiết bị điện thông minh, cài đặt vào Bộ điều khiển trung tâm, phân phòng và thiết lập kịch bản tự động hóa cho từng phòng.</li>
           <li><b>Phần mềm &amp; Bảo hành:</b> Miễn phí phần mềm FPT Life trọn đời. Bảo hành chính hãng 24 tháng tận nơi.</li>
           <li><b>Điều khoản thương mại:</b> Thanh toán 50% khi đặt hàng, 40% khi giao thiết bị tới công trình, 10% còn lại sau khi lắp đặt bàn giao nghiệm thu. Thời gian giao hàng 01-03 ngày.</li></ul></div>
         <Sign kh={kh} /><Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 4 / 4" /></section>
+      {/* ĐỀ XUẤT THÊM – không cộng vào tổng */}
+      {(q.proposals ?? []).length > 0 && (
+        <section className="page"><Head right={`ĐỀ XUẤT THÊM | ${kh}`} />
+          <h1 className="h1s">HẠNG MỤC ĐỀ XUẤT THÊM – CHƯA TÍNH VÀO TỔNG BÁO GIÁ</h1>
+          {q.proposals.map((g) => (
+            <div className="pn" key={g.group}><div className="pt">{g.group.toUpperCase()}</div>
+              <table className="t sm2"><thead><tr><th>STT</th><th>Hạng mục</th><th>ĐVT</th><th>SL</th><th>Đơn giá niêm yết</th><th>Giá sau giảm</th><th>Thành tiền dự kiến</th></tr></thead><tbody>
+                {g.lines.map((l, i) => <tr key={l.code + i}><td className="c">{i + 1}</td><td><b>{l.name}</b>{l.vn && <span className="vn">HÀNG VIỆT NAM</span>}{l.note ? <div className="ds">{l.note}</div> : null}</td><td className="c">{l.unit}</td><td className="c">{l.qty}</td><td className="r">{vnd(l.price)}</td><td className="r">{vnd(l.after)}</td><td className="r">{vnd(l.total)}</td></tr>)}
+                {g.lines.some((l) => l.install > 0) && <tr><td /><td colSpan={5}>Lắp đặt, cấu hình ({Math.round(d.settings.installRate * 100)}% giá niêm yết)</td><td className="r">{vnd(g.lines.reduce((a, l) => a + l.install, 0))}</td></tr>}
+                <tr className="tot"><td colSpan={6}><b>TỔNG DỰ KIẾN – {g.group}</b></td><td className="r red"><b>{vnd(g.est)}</b></td></tr>
+              </tbody></table></div>))}
+          <div className="box note"><div className="nt">GHI CHÚ:</div><ul>
+            <li>Các hạng mục trên là <b>đề xuất</b>, chưa cộng vào tổng báo giá {vnd(q.grandTotal)}đ và không đưa vào hợp đồng cho tới khi chủ nhà đồng ý.</li>
+            {q.proposals.some((g) => g.lines.some((l) => l.section === "light" && !l.smart)) && <li>Đèn AB là đèn THƯỜNG: bật/tắt theo mạch qua công tắc cảm ứng FPT, không chỉnh độ sáng/màu từng đèn qua app. Đèn THÔNG MINH FPT chỉnh được độ sáng, màu ánh sáng từng đèn.</li>}
+            {q.proposals.some((g) => g.lines.some((l) => l.section === "light")) && <li>Đèn: giá đã chiết khấu {Math.round(d.settings.lightDiscount * 100)}%, thợ điện công trình lắp.</li>}
+          </ul></div>
+          <Sign kh={kh} /><Foot title="ĐỀ XUẤT THÊM" pg="Trang đề xuất" /></section>)}
 
       {/* 6. CHIẾU SÁNG (Excel style) */}
       {!noL && <>

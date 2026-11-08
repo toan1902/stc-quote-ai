@@ -114,7 +114,11 @@ export interface Project {
   areaM2?: number;
   shareId?: string;            // link báo giá online
   extras?: Record<string, number>;  // số lượng sửa tay theo mã hàng (sw1, hub, gate_ab, gate_sw, light_downlight_ab…) + hạng mục ngoài bản vẽ
-  options?: Partial<Settings>;    // lựa chọn riêng của khách này (loại đèn, bộ trung tâm, % chiết khấu…)
+  options?: Partial<Settings>;
+  proposals?: Proposal[];         // hạng mục ĐỀ XUẤT – hiện trên báo giá nhưng KHÔNG cộng vào tổng / hợp đồng    // lựa chọn riêng của khách này (loại đèn, bộ trung tâm, % chiết khấu…)
   shareStatus?: "live" | "locked"; // trạng thái link online (ghi lại để hiện trong danh sách)
   updatedAt?: string;
 }
+
+/** Hạng mục đề xuất thêm (chưa tính vào tổng): mã hàng + SL, gom theo nhóm (vd "Phương án A – đèn thường AB"). */
+export interface Proposal { code: string; qty: number; group?: string; note?: string }

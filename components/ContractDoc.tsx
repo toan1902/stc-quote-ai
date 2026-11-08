@@ -8,13 +8,17 @@ const CO = "CÔNG TY TNHH ĐẦU TƯ VÀ CÔNG NGHỆ STC";
 const dots = "……………………………………";
 
 /** Hợp đồng cung cấp & lắp đặt – sinh từ báo giá đã chốt (sau khi khách đặt cọc). */
-export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPayload; deposit: Deposit; contractNo: string; lockedAt: string }; backHref?: string }) {
-  const { payload: d, deposit: dep, contractNo } = rec;
+export interface PartyA { phone?: string; cccd?: string; cccdDate?: string; cccdPlace?: string; rep?: string }
+export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { payload: PrintPayload; deposit?: Deposit | null; contractNo?: string; lockedAt?: string }; backHref?: string; partyA?: PartyA; draft?: boolean }) {
+  const { payload: d } = rec;
+  const dep: Deposit = rec.deposit ?? { amount: 0, date: "", method: "" };
+  const hasDep = dep.amount > 0;
+  const contractNo = rec.contractNo || "………/HĐ-STC";
+  const A = partyA ?? {};
   const P = d.project, q = d.quote;
-  const signed = new Date(rec.lockedAt);
-  const day = signed.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit" });
-  const mon = signed.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", month: "2-digit" });
-  const yr = signed.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric" });
+  const signed = rec.lockedAt ? new Date(rec.lockedAt) : null;
+  const fmt = (o: Intl.DateTimeFormatOptions) => (signed ? signed.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", ...o }) : "……");
+  const day = fmt({ day: "2-digit" }), mon = fmt({ month: "2-digit" }), yr = signed ? fmt({ year: "numeric" }) : "20……";
   const total = q.grandTotal;
   const t1 = Math.round(total * 0.5), t2 = Math.round(total * 0.4), t3 = total - t1 - t2;
   const rest1 = Math.max(0, t1 - dep.amount);
@@ -28,6 +32,7 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
   return (
     <div className="ctr">
       <div className="noprint bar">{backHref && <a href={backHref}>← Xem báo giá</a>}<PrintButton label="In / Lưu PDF hợp đồng" /></div>
+      {draft && <div className="noprint" style={{ maxWidth: 794, margin: "0 auto 8px", color: "#b45309", fontSize: 13 }}>Bản soạn thảo – thông tin lấy tự động theo báo giá đang mở trong app. Số liệu cọc/CCCD nhập ở ô phía trên.</div>}
       <article className="a4">
         <div className="qh"><b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br /><u><b>Độc lập – Tự do – Hạnh phúc</b></u></div>
         <h1>HỢP ĐỒNG CUNG CẤP VÀ LẮP ĐẶT<br />THIẾT BỊ NHÀ THÔNG MINH{hasLight && <> &amp; CHIẾU SÁNG</>}</h1>
@@ -35,7 +40,7 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
         <ul className="cc">
           <li>Căn cứ Bộ luật Dân sự số 91/2015/QH13 ngày 24/11/2015;</li>
           <li>Căn cứ Luật Thương mại số 36/2005/QH11 ngày 14/06/2005;</li>
-          <li>Căn cứ báo giá lập ngày {P.date} đã được Bên A chấp thuận và đặt cọc ngày {dep.date};</li>
+          <li>Căn cứ báo giá lập ngày {P.date} đã được Bên A chấp thuận{hasDep ? ` và đặt cọc ngày ${dep.date}` : ""};</li>
           <li>Căn cứ nhu cầu và khả năng của hai bên.</li>
         </ul>
         <p>Hôm nay, ngày {day} tháng {mon} năm {yr}, chúng tôi gồm:</p>
@@ -43,8 +48,9 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
         <h3>BÊN A (BÊN MUA): {P.customer.toUpperCase()}</h3>
         <table className="kv"><tbody>
           <tr><td>Địa chỉ công trình</td><td>{P.address}</td></tr>
-          <tr><td>Điện thoại</td><td>{dep.phone || dots}</td></tr>
-          <tr><td>Số CCCD</td><td>{dots} cấp ngày {dots}</td></tr>
+          {A.rep && <tr><td>Người đại diện</td><td>{A.rep}</td></tr>}
+          <tr><td>Điện thoại</td><td>{A.phone || dep.phone || dots}</td></tr>
+          <tr><td>Số CCCD</td><td>{A.cccd || dots} cấp ngày {A.cccdDate || dots}{A.cccdPlace ? ` tại ${A.cccdPlace}` : ""}</td></tr>
         </tbody></table>
 
         <h3>BÊN B (BÊN BÁN): {CO}</h3>
@@ -72,9 +78,10 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
         <p>Giá trị trên được giữ cố định theo báo giá đã chốt. Hạng mục phát sinh ngoài Phụ lục 01 (nếu có) do hai bên thống nhất bằng phụ lục bổ sung. Khối lượng ghi “ước tính” (ray rèm, LED dây…) được nghiệm thu và thanh toán theo khối lượng thực tế.</p>
 
         <h3>Điều 3. Đặt cọc và thanh toán</h3>
-        <p>Bên A đã đặt cọc cho Bên B số tiền <b>{vnd(dep.amount)}</b> (Bằng chữ: <i>{docSo(dep.amount)}</i>) ngày {dep.date}, hình thức: {dep.method}{dep.note ? ` (${dep.note})` : ""}. Tiền cọc được trừ vào đợt thanh toán 1.</p>
+        {hasDep ? <p>Bên A đã đặt cọc cho Bên B số tiền <b>{vnd(dep.amount)}</b> (Bằng chữ: <i>{docSo(dep.amount)}</i>) ngày {dep.date}, hình thức: {dep.method}{dep.note ? ` (${dep.note})` : ""}. Tiền cọc được trừ vào đợt thanh toán 1.</p>
+          : <p>Bên A đặt cọc cho Bên B số tiền {dots} đồng ngày {dots}, hình thức: {dots}. Tiền cọc được trừ vào đợt thanh toán 1.</p>}
         <table className="t"><thead><tr><th>Đợt</th><th>Thời điểm</th><th>Tỷ lệ</th><th>Số tiền (đồng)</th></tr></thead><tbody>
-          <tr><td className="c">1</td><td>Khi ký hợp đồng / đặt hàng (đã trừ cọc, còn phải thanh toán {vnd(rest1)})</td><td className="c">50%</td><td className="r">{vnd(t1)}</td></tr>
+          <tr><td className="c">1</td><td>Khi ký hợp đồng / đặt hàng{hasDep ? ` (đã trừ cọc, còn phải thanh toán ${vnd(rest1)})` : " (trừ tiền cọc)"}</td><td className="c">50%</td><td className="r">{vnd(t1)}</td></tr>
           <tr><td className="c">2</td><td>Khi Bên B giao thiết bị tới công trình</td><td className="c">40%</td><td className="r">{vnd(t2)}</td></tr>
           <tr><td className="c">3</td><td>Sau khi lắp đặt, bàn giao, nghiệm thu</td><td className="c">10%</td><td className="r">{vnd(t3)}</td></tr>
         </tbody></table>

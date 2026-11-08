@@ -112,7 +112,7 @@ export default function Home() {
   const eff = useMemo(() => (settings ? { ...settings, ...(project?.options ?? {}) } : null), [settings, project?.options]);
   const boq = useMemo(() => (project && eff ? buildBOQ(project, eff) : null), [project, eff]);
   const checks = useMemo(() => (project ? crossCheck(project) : []), [project]);
-  const quote = useMemo(() => (boq && settings && catalog.length ? computeQuote(boq, catalog, eff!, extrasOverrides(project?.extras)) : null), [boq, catalog, eff, project?.extras]);
+  const quote = useMemo(() => (boq && settings && catalog.length ? computeQuote(boq, catalog, eff!, extrasOverrides(project?.extras), project?.proposals) : null), [boq, catalog, eff, project?.extras, project?.proposals]);
   const totalOf = (p: Project) => { try { const s = { ...settings!, ...(p.options ?? {}) }; return computeQuote(buildBOQ(p, s), catalog, s, extrasOverrides(p.extras)).grandTotal; } catch { return 0; } };
   const openProject = (p: Project) => { setProject(p.options || !settings ? p : { ...p, options: { ...settings } }); setFile(null); setDoc(null); setStep(p.pages.some((x) => COUNT_DISCIPLINES.includes(x.discipline) && !x.analysed) && p.source !== "claude-import" ? 1 : 2); };
   const newCustomer = () => { setProject(null); setFile(null); setDoc(null); setForm({ customer: "", address: "Đắk Lắk", date: today(), areaM2: "" }); setLogs([]); setStep(0); setError(""); };
