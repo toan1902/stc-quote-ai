@@ -179,7 +179,11 @@ export default function Home() {
       <header className="top">
         <img src="/quote-assets/i-000.png" alt="STC" />
         <h1>STC Quote AI</h1>
-        <div className="steps">{STEPS.map((s, i) => <span key={s} className={i === step ? "on" : i < step ? "done" : ""} onClick={() => project && i >= 2 && setStep(i as Step)}>{s}</span>)}</div>
+        <div className="steps">{STEPS.map((s, i) => <span key={s} className={i === step ? "on" : i < step ? "done" : ""} onClick={() => project && i >= 2 && setStep(i as Step)}>{s}</span>)}
+          <span className={project && quote ? "" : "off"} title="Soạn hợp đồng tự động theo báo giá của khách đang mở" style={{ cursor: project && quote ? "pointer" : "not-allowed", opacity: project && quote ? 1 : 0.5 }}
+            onClick={() => { if (!project || !quote || !boq || !eff) { alert("Mở hồ sơ khách (📁 Hồ sơ khách) trước rồi bấm Hợp đồng."); return; }
+              localStorage.setItem("stc_print", JSON.stringify({ project: { customer: project.customer, address: project.address, date: project.date, sourceName: project.sourceName }, boq, quote, checks, settings: eff }));
+              window.open("/quote/contract", "_blank"); }}>5. Hợp đồng ↗</span></div>
         <div className="sp" />
         {project && <span className="cur">Đang làm: <b>{project.customer}</b> · {project.address}</span>}
         <button onClick={() => { setSaved(listProjects()); setShowList(true); }}>📁 Hồ sơ khách ({saved.length})</button>
