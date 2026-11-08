@@ -104,7 +104,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         <div className="banner">GIẢI PHÁP FPT SMART HOME: NÂNG TẦM TRẢI NGHIỆM SỐNG &amp; GIÁ TRỊ ĐẦU TƯ LÂU DÀI</div>
         <div className="intro"><div><div className="kg">Kính gửi: {kh} ({dc})</div>
           <p>Việc trang bị hệ thống <b>FPT Smart Home</b> ứng dụng chuẩn kết nối <b>Bluetooth Mesh</b> cùng công tắc cảm ứng mặt kính cường lực nút lõm viền nhôm không chỉ dừng lại ở việc thay thế thiết bị điện, mà là khoản đầu tư trực tiếp vào chất lượng sống, sự an toàn tuyệt đối, đẳng cấp thẩm mỹ và giá trị vận hành bền vững của toàn bộ ngôi nhà.</p></div>
-          <div className="qr"><img src={A + "i-007.png"} alt="" /><b>QUÉT QR TRẢI NGHIỆM 3D</b></div></div>
+          <div className="qr"><img src={A + "i-007.png"} alt="" /><b>QUÉT ĐỂ TRẢI NGHIỆM<br />NHÀ THÔNG MINH FPT</b></div></div>
         <div className="sec">I. MỘT NGÀY TRẢI NGHIỆM TIỆN NGHI CÙNG FPT SMART HOME</div>
         <div className="grid">
           <Card ic="i-008.png" t={<><span className="or">1. Buổi Sáng (06:30)</span>&nbsp;- Thức Giấc Tự Nhiên &amp; Khởi Hành</>}>Đúng 06:30 sáng{curN ? ", rèm phòng ngủ tự động mở đón ánh nắng tự nhiên" : ", đèn phòng ngủ sáng dần đánh thức nhẹ nhàng"}. Đồng thời đèn sảnh, hiên chiếu sáng ban đêm tự động tắt để tiết kiệm điện năng.</Card>

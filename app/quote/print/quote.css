@@ -49,7 +49,7 @@
 .qroot .intro p{font-size:12.3px;line-height:1.65;margin:4px 12px 0 0;text-align:justify}
 .qroot .kg{color:#1d3a89;font-weight:700;font-size:12.5px}
 .qroot .qr{border:2px solid #1d3a89;border-radius:6px;padding:5px;text-align:center;color:#1d3a89;font-size:9.5px;min-width:160px}
-.qroot .qr img{width:122px;display:block;margin:0 auto 3px}
+.qroot .qr img{width:128px;display:block;margin:0 auto 3px}
 .qroot .sec{background:#1d3a89;color:#fff;font-weight:800;font-size:12.5px;padding:7px 10px;border-radius:4px;margin:6px 0}
 .qroot .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
 .qroot .card{border:1px solid #cbd5e1;border-radius:5px;padding:8px 10px}
