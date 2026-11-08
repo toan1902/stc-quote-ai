@@ -7,7 +7,7 @@
 .qroot .hd .lg{width:105px;margin-right:9px}
 .qroot .co{flex:1}
 .qroot .cn{color:#1d3a89;font-weight:700;font-size:14.5px}
-.qroot .ci{font-size:8.6px;line-height:1.45;color:#334155}
+.qroot .ci{font-size:9px;line-height:1.45;color:#334155}
 .qroot .co{min-width:0}
 .qroot .rt{flex-shrink:0;text-align:right;font-size:8.6px;font-weight:700;color:#1d3a89;white-space:nowrap}
 .qroot .rt img{width:82px;display:block;margin-left:auto}
@@ -28,7 +28,7 @@
 .qroot .gr{color:#15803d}
 .qroot .sm{font-size:8.5px}
 .qroot .it{font-weight:700;font-size:10.5px}
-.qroot .ds{font-size:8.8px;color:#475569;line-height:1.3}
+.qroot .ds{font-size:9.3px;color:#475569;line-height:1.3}
 .qroot .sum td{font-size:10.5px;padding:7px 6px}
 .qroot .sum .ds{font-size:8.6px}
 .qroot .sr td{background:#e0f2fe;color:#0369a1;font-weight:700;font-size:10.5px}
@@ -38,25 +38,25 @@
 .qroot .bc{font-size:9.5px;font-style:italic;margin-top:3px}
 .qroot .note{background:#f8fafc}
 .qroot .nt{color:#1d3a89;font-weight:800;font-size:11px;margin-bottom:3px}
-.qroot .note ul{margin:0;padding-left:18px;font-size:10px;line-height:1.55}
+.qroot .note ul{margin:0;padding-left:18px;font-size:10.5px;line-height:1.55}
 .qroot .sg{display:flex;justify-content:space-around;text-align:center;color:#1d3a89;font-size:11px;margin-top:10px}
 .qroot .sg .nm{color:#0f172a;font-weight:800;margin-top:44px;font-size:11.5px}
 .qroot .ft{position:absolute;left:15mm;right:15mm;bottom:8mm;border-top:1px solid #cbd5e1;padding-top:5px;display:flex;align-items:center;font-size:8.6px;font-weight:700;color:#475569}
 .qroot .ft img{width:30px;margin-right:8px}
 .qroot .ft .pg{margin-left:auto;font-weight:400}
-.qroot .banner{background:linear-gradient(90deg,#0f172a,#1d3a89);color:#fff;text-align:center;font-weight:800;font-size:11.5px;padding:9px;border-radius:5px;margin:9px 0 6px}
+.qroot .banner{background:linear-gradient(90deg,#0f172a,#1d3a89);color:#fff;text-align:center;font-weight:800;font-size:13px;padding:10px;border-radius:5px;margin:9px 0 6px}
 .qroot .intro{display:flex;border:1px solid #cbd5e1;border-left:4px solid #ea580c;border-radius:5px;padding:8px 10px;margin-bottom:9px;align-items:center}
-.qroot .intro p{font-size:9.8px;line-height:1.6;margin:4px 12px 0 0;text-align:justify}
-.qroot .kg{color:#1d3a89;font-weight:700;font-size:10.5px}
-.qroot .qr{border:2px solid #1d3a89;border-radius:6px;padding:5px;text-align:center;color:#1d3a89;font-size:8.5px;min-width:160px}
+.qroot .intro p{font-size:12.3px;line-height:1.65;margin:4px 12px 0 0;text-align:justify}
+.qroot .kg{color:#1d3a89;font-weight:700;font-size:12.5px}
+.qroot .qr{border:2px solid #1d3a89;border-radius:6px;padding:5px;text-align:center;color:#1d3a89;font-size:9.5px;min-width:160px}
 .qroot .qr img{width:122px;display:block;margin:0 auto 3px}
-.qroot .sec{background:#1d3a89;color:#fff;font-weight:800;font-size:11px;padding:6px 10px;border-radius:4px;margin:6px 0}
+.qroot .sec{background:#1d3a89;color:#fff;font-weight:800;font-size:12.5px;padding:7px 10px;border-radius:4px;margin:6px 0}
 .qroot .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
-.qroot .card{border:1px solid #cbd5e1;border-radius:5px;padding:7px 9px}
-.qroot .ct{color:#1d3a89;font-weight:700;font-size:10.5px;display:flex;align-items:center;margin-bottom:4px}
-.qroot .ct img{width:13px;margin-right:6px}
+.qroot .card{border:1px solid #cbd5e1;border-radius:5px;padding:8px 10px}
+.qroot .ct{color:#1d3a89;font-weight:700;font-size:12.2px;display:block;line-height:1.35;margin-bottom:4px}
+.qroot .ct img{width:15px;margin-right:6px;vertical-align:-2px;display:inline}
 .qroot .or{color:#c2410c}
-.qroot .cb{font-size:9.6px;line-height:1.6;text-align:justify}
+.qroot .cb{font-size:12px;line-height:1.6;text-align:justify}
 .qroot .dt td{font-size:9.6px}
 .qroot .pi{width:30px;height:30px;object-fit:contain}
 .qroot .dt td{padding:2px 4px}
@@ -78,7 +78,7 @@
 .qroot .pn{border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;margin-bottom:9px}
 .qroot .pt{background:#1d3a89;color:#fff;font-weight:800;font-size:10.2px;padding:7px 10px}
 .qroot .sm2{margin:0}
-.qroot .sm2 td{font-size:9px;padding:5px 4px}
+.qroot .sm2 td{font-size:9.6px;padding:5px 4px}
 .qroot .sm2 td:nth-child(2),.qroot .sm2 td:nth-child(3){white-space:nowrap}
 .qroot .sm2 th{font-size:9.2px}
 .qroot /* excel style */
@@ -142,7 +142,7 @@
 .qroot .nrm{background:#e5e7eb;color:#374151;border:1px solid #9ca3af}
 .qroot td.xnote{font-size:9.5px;background:#fffbeb;border:1px solid #f59e0b;color:#78350f;line-height:1.4}
 
-.qroot .why{background:#eef4ff;border:1px solid #c7d7fe}.qroot .why ul{margin:2px 0 0;padding-left:16px;font-size:9.5px;line-height:1.45}.qroot .why .nt{color:#1d3a89}
+.qroot .why{background:#eef4ff;border:1px solid #c7d7fe}.qroot .why ul{margin:2px 0 0;padding-left:16px;font-size:10.2px;line-height:1.45}.qroot .why .nt{color:#1d3a89}
 
 .qbanner.dark{background:#0f1e3c;border:0;color:#fff;border-radius:10px;line-height:1.55;font-size:14px;box-sizing:border-box}
 .qbanner.dark .y{color:#ffde00}.qbanner.dark .g{color:#86efac}.qbanner.dark .sm{font-size:12px;color:#cbd5e1}
