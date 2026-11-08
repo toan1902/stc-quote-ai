@@ -67,6 +67,18 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   const codeOfType = (t: string) => (t === "spotlight" ? d.settings.defaultSpotlight ?? "spotlight_ab" : d.settings.defaultDownlight);
   const nameOfType = (t: string) => q.lightLines.find((l) => l.code === codeOfType(t))?.name ?? baseLine?.name ?? DEVICE_LABEL[t as keyof typeof DEVICE_LABEL];
   let n = 0;
+  const dtRows = q.sections.reduce((a, s) => a + 1 + s.lines.length, 0);
+  const dtDense = dtRows > 12, dtSplit = dtRows > 21;
+  const dtTail = (<>
+        <div className="box tots">
+            <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ NIÊM YẾT:</span><b>{vnd(q.niem)}</b></div>
+            <div className="tl gr"><span>GIẢM GIÁ ƯU ĐÃI THIẾT BỊ (động cơ rèm 30%, thiết bị mở rộng sóng 10%, còn lại 20%):</span><b>{vnd(q.giam)}</b></div>
+            <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ SAU GIẢM GIÁ:</span><b>{vnd(q.sau)}</b></div>
+            <div className="tl"><span>CHI PHÍ LẮP ĐẶT, CÀI ĐẶT CẤU HÌNH{q.kmLapDat ? " (gồm cài đặt hành trình cổng)" : ""}:</span><b>{vnd(q.lapDat + (q.kmLapDat ?? 0))}</b></div>
+            {q.kmLapDat > 0 && <div className="tl gr"><span>KHUYẾN MÃI MIỄN PHÍ LẮP ĐẶT CỔNG TỰ ĐỘNG KHI CHỌN HỆ SINH THÁI FPT SMART HOME:</span><b>{vnd(-q.kmLapDat)}</b></div>}
+            <div className="gl"><span>TỔNG CỘNG GÓI GIẢI PHÁP HOÀN THIỆN:</span><span>{vnd(q.shTotal)}</span></div>
+            <div className="bc"><b>Bằng chữ:</b> {q.shWords}</div></div>
+        <Sign kh={kh} /></>);
 
   return (
     <div className="qroot">
@@ -121,26 +133,19 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         </div>
         <Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 1 / 4" /></section>
 
-      {/* 3. DỰ TOÁN */}
+      {/* 3. DỰ TOÁN – nhiều dòng thì thu gọn mô tả; quá nhiều thì tách phần tổng + ký sang trang tiếp */}
       <section className="page"><Head right="PHỤ LỤC HỢP ĐỒNG 01 | Trang 2/4 (Dự toán chi phí)" />
         <h1>BẢNG DỰ TOÁN SMART HOME FPT</h1>
         <Info kh={kh} dc={dc} r1={<><b>Ngày lập báo giá:</b> {P.date}</>} r2={<><b>Quy cách công tắc:</b> Kính cường lực, nút lõm viền nhôm, chuẩn Bluetooth Mesh</>} />
-        <table className="t dt"><thead><tr><th>STT</th><th>Ảnh</th><th>Tên Thiết Bị &amp; Tính Năng Thông Số Kỹ Thuật</th><th>ĐVT</th><th>SL</th><th>Đơn Giá (đ)</th><th>Giảm</th><th>Giá Giảm (đ)</th><th>Thành Tiền (đ)</th></tr></thead>
+        <table className={`t dt${dtDense ? " dense" : ""}`}><thead><tr><th>STT</th><th>Ảnh</th><th>Tên Thiết Bị &amp; Tính Năng Thông Số Kỹ Thuật</th><th>ĐVT</th><th>SL</th><th>Đơn Giá (đ)</th><th>Giảm</th><th>Giá Giảm (đ)</th><th>Thành Tiền (đ)</th></tr></thead>
           <tbody>{q.sections.map((s) => [
             <tr key={s.key} className="sr"><td colSpan={8}>{s.title}</td><td className="r">{vnd(s.total)}</td></tr>,
             ...s.lines.map((l) => { n++; return (
               <tr key={l.code}><td className="c">{n}</td><td className="c">{l.img ? <img className="pi" src={l.img} alt="" /> : <span className="vnflag">AB</span>}</td><td><div className="it">{l.name}{l.vn && <span className="vn">Hàng Việt Nam</span>}</div>{l.bigImg ? <div className="ds">Trọn bộ 2 cánh, motor 24V, IP67, tải 800kg/cánh. Thông số chi tiết &amp; điều khoản: xem trang <b>Dự toán cổng tự động</b>.</div> : <div className="ds">{l.desc}</div>}</td>
                 <td className="c">{l.unit}</td><td className="c">{l.qty}</td><td className="r">{vnd(l.price)}</td><td className="c">{l.salePrice ? vnd(l.after - l.price) : `${Math.round(l.discount * 100)}%`}</td><td className="r">{vnd(l.after)}</td><td className="r">{vnd(l.total)}</td></tr>); }),
           ])}</tbody></table>
-        <div className="box tots">
-          <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ NIÊM YẾT:</span><b>{vnd(q.niem)}</b></div>
-          <div className="tl gr"><span>GIẢM GIÁ ƯU ĐÃI THIẾT BỊ (động cơ rèm 30%, thiết bị mở rộng sóng 10%, còn lại 20%):</span><b>{vnd(q.giam)}</b></div>
-          <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ SAU GIẢM GIÁ:</span><b>{vnd(q.sau)}</b></div>
-          <div className="tl"><span>CHI PHÍ LẮP ĐẶT, CÀI ĐẶT CẤU HÌNH{q.kmLapDat ? " (gồm cài đặt hành trình cổng)" : ""}:</span><b>{vnd(q.lapDat + (q.kmLapDat ?? 0))}</b></div>
-          {q.kmLapDat > 0 && <div className="tl gr"><span>KHUYẾN MÃI MIỄN PHÍ LẮP ĐẶT CỔNG TỰ ĐỘNG KHI CHỌN HỆ SINH THÁI FPT SMART HOME:</span><b>{vnd(-q.kmLapDat)}</b></div>}
-          <div className="gl"><span>TỔNG CỘNG GÓI GIẢI PHÁP HOÀN THIỆN:</span><span>{vnd(q.shTotal)}</span></div>
-          <div className="bc"><b>Bằng chữ:</b> {q.shWords}</div></div>
-        <Sign kh={kh} /><Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 2 / 4" /></section>
+        {dtSplit ? <><p className="note" style={{ textAlign: "right", fontStyle: "italic", margin: "4px 0 0" }}>(Tổng cộng &amp; ký xác nhận – xem trang tiếp theo)</p><Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 2 / 4" /></> : <>{dtTail}<Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 2 / 4" /></>}</section>
+      {dtSplit && <section className="page"><Head right="PHỤ LỤC HỢP ĐỒNG 01 | Trang 2/4 (tiếp – Tổng cộng)" /><h1>BẢNG DỰ TOÁN SMART HOME FPT (tiếp)</h1>{dtTail}<Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 2 / 4 (tiếp)" /></section>}
 
       {/* 3b. DỰ TOÁN CỔNG TỰ ĐỘNG (khi có) */}
       {gateLine && (

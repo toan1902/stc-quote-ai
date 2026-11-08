@@ -147,3 +147,8 @@
 .qbanner.dark{background:#0f1e3c;border:0;color:#fff;border-radius:10px;line-height:1.55;font-size:14px;box-sizing:border-box}
 .qbanner.dark .y{color:#ffde00}.qbanner.dark .g{color:#86efac}.qbanner.dark .sm{font-size:12px;color:#cbd5e1}
 .qbanner.dark a,.qbanner.dark button{background:transparent;color:#fff;border-color:#fff}
+/* bảng dự toán nhiều dòng: mô tả 1 dòng, ảnh nhỏ hơn để vừa 1 trang */
+.qroot .dt.dense td{padding:1px 4px}
+.qroot .dt.dense .pi{width:24px;height:24px}
+.qroot .dt.dense .ds{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.qroot .dt.dense .sr td{padding:3px 5px}
