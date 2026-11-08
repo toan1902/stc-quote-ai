@@ -1,4 +1,5 @@
 "use client";
+import { applySwitchShape } from "@/lib/core/catalog";
 import { useEffect, useRef, useState } from "react";
 import type { CatalogItem, CrossCheck, Project, Settings } from "@/lib/core/types";
 import type { BOQResult } from "@/lib/core/boq";
@@ -40,7 +41,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
   };
   const manualKeys = Object.keys(ex).filter((k) => k !== "gate_ab");
   const shown = new Set(quote.sections.flatMap((s) => s.lines).map((l) => okey(l)).concat(quote.lightLines.map((l) => okey(l))));
-  const addable = catalog.filter((c) => c.price > 0 && c.code !== "gate_ab" && c.code !== (settings.hubModel === "hub_pb650" ? "hub" : "hub_pb650") && !shown.has(okey(c)));
+  const addable = applySwitchShape(catalog, settings.switchShape).filter((c) => c.price > 0 && c.code !== "gate_ab" && c.code !== (settings.hubModel === "hub_pb650" ? "hub" : "hub_pb650") && !shown.has(okey(c)));
 
   const payload = (): PrintPayload => ({ project: { customer: project.customer, address: project.address, date: project.date, sourceName: project.sourceName }, boq, quote, checks, settings });
 
@@ -116,7 +117,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
                     <input type="number" min={0} value={l.qty} title="Sửa số lượng (lưu riêng cho khách này)" className={ex[okey(l)] != null ? "qtyEdited" : ""} style={{ width: 64 }}
                       onChange={(e) => setQty(okey(l), Number(e.target.value) || 0)} />
                     {ex[okey(l)] != null && <button className="ghost" title="Về số lượng theo bản vẽ" style={{ padding: "2px 6px" }} onClick={() => setQty(okey(l), null)}>↺</button>}</>}</td>
-                  <td><input type="number" value={l.price} style={{ width: 120 }} onChange={(e) => setItem(l.code.replace(/^prop_/, ""), { price: Number(e.target.value) })} /></td>
+                  <td>{settings.switchShape === "rect" && /^(sw[1-4]|curtain_sw|gate_sw)$/.test(l.code) ? <input type="number" value={l.price} style={{ width: 120 }} disabled title="Giá công tắc CHỮ NHẬT theo bảng giá FPT – đổi kiểu công tắc ở ô “Kiểu công tắc”" /> : <input type="number" value={l.price} style={{ width: 120 }} onChange={(e) => setItem(l.code.replace(/^prop_/, ""), { price: Number(e.target.value) })} />}</td>
                   <td>{l.section === "light" ? "–" : <input type="number" step="1" value={Math.round(l.discount * 100)} style={{ width: 64 }} onChange={(e) => setItem(l.code, { discount: Number(e.target.value) / 100 })} />}{l.section !== "light" && "%"}</td>
                 </tr>
               ))}
@@ -141,6 +142,11 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
                 <option value="downlight_fpt">Downlight THÔNG MINH FPT Athena CCT (484.000đ)</option>
                 <option value="athena">Spotlight THÔNG MINH FPT Athena (869.000đ)</option>
                 <option value="spotlight_ab">Spotlight AB – đèn THƯỜNG (588.000đ)</option>
+              </select></label>
+            <label className="f">Kiểu công tắc Athena
+              <select value={settings.switchShape ?? "square"} onChange={(e) => onSettings({ ...settings, switchShape: e.target.value as Settings["switchShape"] })}>
+                <option value="square">Vuông 86×86 – 2.079.000đ (rèm 1.639.000đ)</option>
+                <option value="rect">Chữ nhật 120×72 – 1.969.000đ (rèm 1.529.000đ)</option>
               </select></label>
             <label className="f">Bộ điều khiển trung tâm (mã hàng)
               <select value={settings.hubModel ?? "hub"} onChange={(e) => onSettings({ ...settings, hubModel: e.target.value as Settings["hubModel"] })}>

@@ -1,7 +1,7 @@
 import type { CatalogItem, Settings } from "./types.ts";
 import type { BOQResult } from "./boq.ts";
 import { qtyOf } from "./boq.ts";
-import { SECTIONS } from "./catalog.ts";
+import { SECTIONS, applySwitchShape } from "./catalog.ts";
 import { docSo } from "./words.ts";
 
 export interface QuoteLine extends CatalogItem { qty: number; after: number; total: number; listTotal: number; proposed?: boolean }
@@ -15,7 +15,8 @@ export interface Quote {
   grandNiem: number; grandGiam: number; grandTotal: number; grandWords: string;
 }
 
-export function computeQuote(boq: BOQResult, catalog: CatalogItem[], s: Settings, overrides: Record<string, number> = {}): Quote {
+export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Settings, overrides: Record<string, number> = {}): Quote {
+  const catalog = applySwitchShape(catalog0, s.switchShape);
   const cat = (code: string) => catalog.find((c) => c.code === code)!;
   const q = (code: string) => overrides[code] ?? qtyOf(boq, code);
   const mk = (code: string, qty: number): QuoteLine => {
@@ -30,14 +31,14 @@ export function computeQuote(boq: BOQResult, catalog: CatalogItem[], s: Settings
     cam_in: q("cam_in"), cam_out: q("cam_out"),
   };
   const sections: QuoteSection[] = [];
-  for (const key of ["lighting_ctrl", "gate", "curtain", "camera"] as const) {
-    const lines = catalog.filter((c) => c.section === key).map((c) => mk(c.code, shQty[c.code] ?? 0)).filter((l) => l.qty > 0 && l.price > 0);
+  for (const key of ["lighting_ctrl", "gate", "curtain", "sensor", "camera"] as const) {
+    const lines = catalog.filter((c) => c.section === key).map((c) => mk(c.code, shQty[c.code] ?? overrides[c.code] ?? 0)).filter((l) => l.qty > 0 && l.price > 0);
     if (!lines.length) continue;
     const title = key === "gate" && !lines.some((l) => l.code === "gate_ab") ? "II. Giải pháp điều khiển cửa cuốn / cổng" : SECTIONS[key];
     sections.push({ key, title, lines, total: lines.reduce((a, l) => a + l.total, 0), listTotal: lines.reduce((a, l) => a + l.listTotal, 0) });
   }
   // renumber section roman numerals in order of appearance
-  const roman = ["I", "II", "III", "IV", "V"];
+  const roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
   sections.forEach((sec, i) => { sec.title = sec.title.replace(/^[IVX]+\./, roman[i] + "."); });
 
   const niem = sections.reduce((a, x) => a + x.listTotal, 0);

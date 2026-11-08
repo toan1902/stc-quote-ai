@@ -88,7 +88,8 @@ export interface Settings {
   lightInstall: number;         // lighting install %
   defaultDownlight: "downlight_ab" | "downlight_fpt" | "athena" | "spotlight_ab";
   defaultSpotlight: "spotlight_ab" | "athena" | "tube_ab";
-  hubModel: "hub" | "hub_pb650";   // mã bộ trung tâm: T950 hoặc Play Box 650 (giá theo mã)
+  hubModel: "hub" | "hub_pb650";
+  switchShape?: "square" | "rect";  // kiểu công tắc Athena: vuông (2.079.000) / chữ nhật 120×72 (1.969.000)   // mã bộ trung tâm: T950 hoặc Play Box 650 (giá theo mã)
   railPerCurtainM: number;      // default rail metres per curtain point
   mergeAdjacentSwitches: boolean;
   areaPerHubM2: number;

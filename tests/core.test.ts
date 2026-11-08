@@ -259,3 +259,19 @@ test("Phân loại hồ sơ BVTC đầy đủ: khung tên 'kiến trúc' lặp l
   assert.deepEqual(r.map((x) => x?.discipline), ["other", "other", "power", "lighting", "other", "other"]);
   assert.equal(r[2]?.floor, "Tầng hầm"); assert.equal(r[3]?.floor, "Tầng 2");
 });
+
+test("Công tắc CHỮ NHẬT + rèm + cảm biến thêm tay (Anh Hiếu, Ea Na): khớp báo giá PDF", () => {
+  const t = JSON.parse(readFileSync(new URL("./fixtures/anh-hieu.takeoff.json", import.meta.url), "utf8")) as TakeoffJSON;
+  const p = importTakeoff(t, "08/11/2026");
+  const s = { ...DEFAULT_SETTINGS, ...(p.options ?? {}) };
+  assert.equal(s.switchShape, "rect");
+  const b = buildBOQ(p, s);
+  const q = computeQuote(b, DEFAULT_CATALOG, s, p.extras as Record<string, number>);
+  const ln = (c: string) => q.sections.flatMap((x) => x.lines).find((l) => l.code === c);
+  assert.equal(ln("sw3")?.price, 1969000); assert.match(ln("sw3")!.name, /CHỮ NHẬT/);
+  assert.equal(ln("curtain_sw")?.price, 1529000);
+  assert.equal(q.grandTotal, 47112450);
+  const q2 = computeQuote(b, DEFAULT_CATALOG, s, { ...(p.extras as Record<string, number>), presence: 5 });
+  assert.equal(q2.grandTotal - q.grandTotal, 5 * 1047200 + Math.round(5 * 1309000 * 0.15));
+  assert.ok(q2.sections.some((x) => x.key === "sensor"));
+});

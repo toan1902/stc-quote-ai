@@ -7,6 +7,7 @@ export const SECTIONS = {
   lighting_ctrl: "I. Giải pháp Điều khiển Chiếu sáng Thông minh",
   gate: "II. Giải pháp cổng tự động âm sàn",
   curtain: "III. Giải pháp rèm vải tự động",
+  sensor: "V. Giải pháp cảm biến & an ninh",
   camera: "IV. Giải pháp camera quan sát",
   light: "Giải pháp chiếu sáng",
 } as const;
@@ -27,6 +28,15 @@ export const DEFAULT_CATALOG: CatalogItem[] = [
   { code: "rail", name: "Thanh ray rèm kéo ngang", desc: "Thanh ray hợp kim nhôm sơn tĩnh điện mở 1 bên hoặc 2 bên, dây curoa lõi thép bền bỉ, con chạy định hình 7cm.", img: A + "i-027.png", unit: "mét", price: 550000, discount: 0.2, section: "curtain", vn: true },
   { code: "cam_in", name: "FPT Camera SE 3 (Indoor 360°)", desc: "Độ phân giải 2K 3MP (2304x1296px), góc xoay 355°, đàm thoại 2 chiều, AI phân biệt người và vật thể, cảnh báo loa hú & đèn nháy.", img: A + "i-028.png", unit: "Bộ", price: 1100000, discount: 0.2, section: "camera", vn: true },
   { code: "cam_out", name: "FPT Camera SE 2S (Outdoor Cảnh Báo)", desc: "Đèn rọi Floodlight 2 chế độ ghi hình đêm có màu, hồng ngoại 30m, kháng nước IP67, cảnh báo chủ động bằng Loa hú & Đèn Flash.", img: A + "i-029.png", unit: "Bộ", price: 1300000, discount: 0.2, section: "camera", vn: true },
+  // Cảm biến & an ninh (bảng giá bán lẻ FPT 07/11/2026) – thêm qua "＋ Thêm hạng mục ngoài bản vẽ"
+  { code: "presence", name: "Cảm biến hiện diện âm trần Athena AC", desc: "Phát hiện người cả khi ngồi yên (WC, phòng làm việc), tự bật/tắt đèn; khoảng cách tối đa 6m, góc 90°, khoét trần 90mm, đo ánh sáng 0–10.000 lux, tải tối đa 300W, chuẩn WiFi – BLE.", img: A + "sensor.png", unit: "Bộ", price: 1309000, discount: 0.2, section: "sensor", vn: true },
+  { code: "motion_ceil", name: "Cảm biến chuyển động âm trần AC Athena", desc: "Nguồn 220V, phát hiện chuyển động <7m, góc 90/360°, đo ánh sáng 0–1000 lux, khoét trần 90mm – bật đèn hành lang, cầu thang, kho khi có người.", img: A + "sensor.png", unit: "Bộ", price: 1034000, discount: 0.2, section: "sensor", vn: true },
+  { code: "motion_v2", name: "Cảm biến chuyển động Athena – V2", desc: "Nguồn 220V, chuẩn Bluetooth Mesh – kích hoạt kịch bản bật đèn, báo động khi có người.", img: A + "sensor.png", unit: "Bộ", price: 649000, discount: 0.2, section: "sensor", vn: true },
+  { code: "door_sensor", name: "Cảm biến cửa Athena", desc: "Pin CR2032, chuẩn Bluetooth Mesh – báo cửa mở/đóng, kích hoạt kịch bản an ninh, bật đèn khi mở cửa.", img: A + "sensor.png", unit: "Bộ", price: 979000, discount: 0.2, section: "sensor", vn: true },
+  { code: "smoke", name: "Cảm biến khói Athena", desc: "Pin CR123A, còi 85dB, đầu dò khói 0.12–0.2 dB/m, nhựa ABS chống cháy, chuẩn Bluetooth Mesh – báo cháy về điện thoại.", img: A + "sensor.png", unit: "Bộ", price: 1364000, discount: 0.2, section: "sensor", vn: true },
+  { code: "siren", name: "Còi hú báo động", desc: "Nguồn 220V, 40W – hú báo động khi cảm biến phát hiện xâm nhập.", img: A + "sensor.png", unit: "Bộ", price: 319000, discount: 0.2, section: "sensor", vn: true },
+  { code: "scene6", name: "Công tắc bấm ngữ cảnh vuông 6 nút Athena", desc: "Dùng pin CR2330, tối đa 12 ngữ cảnh (Về nhà, Đi ngủ, Xem phim…), dán tường không cần đi dây, chuẩn Bluetooth Mesh.", img: A + "i-022.png", unit: "Bộ", price: 979000, discount: 0.2, section: "sensor", vn: true },
+  { code: "smart_socket", name: "Ổ cắm đơn thông minh 16A Athena", desc: "220V, 3500W, 16A – bật/tắt, hẹn giờ thiết bị (bình nóng lạnh, máy bơm…) qua app.", img: A + "sensor.png", unit: "Bộ", price: 385000, discount: 0.2, section: "sensor", vn: true },
   // Lighting (discount applied globally via settings.lightDiscount)
   { code: "athena", name: "Đèn LED âm trần Spotlight THÔNG MINH FPT Athena 95/12W, góc 50°", desc: "", brand: "FPT Smart Home", spec: "– Mã hàng: LSBR0249 (Bluetooth Mesh)<br>– Nguồn cấp: 220V/50Hz<br>– Công suất: 12W<br>– Quang thông: 820-1030 lm<br>– Nhiệt độ màu: 2700K – 6000K<br>– CRI: 90 – Góc chiếu 50°, góc xoay 20°<br>– Kích thước: 108x65mm, khoét trần 95mm<br><b>Đèn THÔNG MINH:</b> bật/tắt, chỉnh độ sáng & nhiệt độ màu từng đèn qua app FPT Smart Home, giọng nói, hẹn giờ, ngữ cảnh", img: A + "i-040.png", unit: "Bộ", price: 869000, discount: 0, section: "light", vn: true, smart: true },
   { code: "downlight_fpt", name: "Đèn LED Downlight THÔNG MINH FPT Athena CCT 110/9W", desc: "", brand: "FPT Smart Home", spec: "– Mã hàng: LDBR026 (Bluetooth Mesh)<br>– Nguồn cấp: 220V/50Hz<br>– Công suất: 9W<br>– Quang thông: 820 lm<br>– Nhiệt độ màu: 3000K – 6500K<br>– Khoét trần: 110mm<br>– Tuổi thọ: 30.000 giờ<br><b>Đèn THÔNG MINH:</b> bật/tắt, chỉnh độ sáng & nhiệt độ màu từng đèn qua app FPT Smart Home, giọng nói, hẹn giờ, ngữ cảnh", img: A + "i-040.png", unit: "Bộ", price: 484000, discount: 0, section: "light", vn: true, smart: true },
@@ -42,9 +52,23 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultDownlight: "downlight_ab",
   defaultSpotlight: "spotlight_ab",
   hubModel: "hub",
+  switchShape: "square",
   railPerCurtainM: 4,
   mergeAdjacentSwitches: true,
   areaPerHubM2: 200,
   proposalSpot: "athena",
   includeProposal: true,
 };
+
+const SWR = "Kiểu CHỮ NHẬT 120×72 mm (đế âm chữ nhật), công suất 300W/kênh, mặt kính cường lực chống trầy, viền LED định vị, chuẩn Bluetooth Mesh. Màu trắng/đen.";
+/** Công tắc Athena kiểu chữ nhật: thay tên, ảnh, đơn giá các mã công tắc theo bảng giá FPT (bán lẻ 07/11/2026). */
+export function applySwitchShape(cat: CatalogItem[], shape?: Settings["switchShape"]): CatalogItem[] {
+  if (shape !== "rect") return cat;
+  return cat.map((c) => {
+    const m = /^sw([1-4])$/.exec(c.code);
+    if (m) return { ...c, name: `Công tắc cảm ứng ${m[1]} nút CHỮ NHẬT Athena`, desc: SWR, img: A + `rect${m[1]}.png`, price: 1969000 };
+    if (c.code === "curtain_sw") return { ...c, name: "Công tắc điều khiển rèm CHỮ NHẬT Athena", desc: "Kiểu chữ nhật 120×72 mm đồng bộ công tắc đèn; điều khiển Mở/Đóng/Dừng rèm, hẹn giờ, kịch bản, chuẩn Bluetooth Mesh.", img: A + "rectcur.png", price: 1529000 };
+    if (c.code === "gate_sw") return { ...c, name: "Công tắc điều khiển cổng (cửa cuốn CHỮ NHẬT Athena)", img: A + "rectcur.png", price: 1969000 };
+    return c;
+  });
+}

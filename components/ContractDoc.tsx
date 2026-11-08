@@ -21,6 +21,8 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
   const shLines = q.sections.flatMap((s) => s.lines.map((l) => ({ ...l, sec: s.title })));
   const showProp = d.settings.includeProposal !== false;
   const lLines = q.lightLines.filter((l) => showProp || !l.proposed);
+  const hasLight = lLines.length > 0 && q.lTotal > 0;
+  const rect = d.settings.switchShape === "rect";
   let n = 0;
 
   return (
@@ -28,7 +30,7 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
       <div className="noprint bar">{backHref && <a href={backHref}>← Xem báo giá</a>}<PrintButton label="In / Lưu PDF hợp đồng" /></div>
       <article className="a4">
         <div className="qh"><b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br /><u><b>Độc lập – Tự do – Hạnh phúc</b></u></div>
-        <h1>HỢP ĐỒNG CUNG CẤP VÀ LẮP ĐẶT<br />THIẾT BỊ NHÀ THÔNG MINH &amp; CHIẾU SÁNG</h1>
+        <h1>HỢP ĐỒNG CUNG CẤP VÀ LẮP ĐẶT<br />THIẾT BỊ NHÀ THÔNG MINH{hasLight && <> &amp; CHIẾU SÁNG</>}</h1>
         <div className="no">Số: {contractNo}</div>
         <ul className="cc">
           <li>Căn cứ Bộ luật Dân sự số 91/2015/QH13 ngày 24/11/2015;</li>
@@ -56,11 +58,12 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
         <p>Hai bên thống nhất ký kết hợp đồng với các điều khoản sau:</p>
 
         <h3>Điều 1. Nội dung hợp đồng</h3>
-        <p>Bên B cung cấp thiết bị chính hãng, lắp đặt, cài đặt cấu hình hệ thống FPT Smart Home và thiết bị chiếu sáng cho công trình của Bên A tại địa chỉ nêu trên, theo chủng loại, số lượng và đơn giá tại <b>Phụ lục 01</b> đính kèm (là một phần không tách rời của hợp đồng). Bên B ưu tiên sử dụng sản phẩm thương hiệu Việt Nam.</p>
-        {lLines.some((l) => !l.smart) && <p>Đèn chiếu sáng ghi “đèn THƯỜNG” (thương hiệu AB) là đèn LED thường, được bật/tắt theo mạch qua công tắc cảm ứng FPT; không có chức năng chỉnh độ sáng, nhiệt độ màu riêng từng đèn. Chỉ các đèn ghi “THÔNG MINH FPT” mới có các chức năng này.</p>}
+        <p>Bên B cung cấp thiết bị chính hãng, lắp đặt, cài đặt cấu hình hệ thống FPT Smart Home{hasLight ? " và thiết bị chiếu sáng" : ""} cho công trình của Bên A tại địa chỉ nêu trên, theo chủng loại, số lượng và đơn giá tại <b>Phụ lục 01</b> đính kèm (là một phần không tách rời của hợp đồng). Bên B ưu tiên sử dụng sản phẩm thương hiệu Việt Nam.</p>
+        {rect && <p>Công tắc cảm ứng dùng kiểu <b>chữ nhật 120×72 mm</b>: Bên A (thợ điện công trình) lắp đế âm tường chữ nhật tại các vị trí công tắc theo bản vẽ.</p>}
+        {hasLight && lLines.some((l) => !l.smart) && <p>Đèn chiếu sáng ghi “đèn THƯỜNG” (thương hiệu AB) là đèn LED thường, được bật/tắt theo mạch qua công tắc cảm ứng FPT; không có chức năng chỉnh độ sáng, nhiệt độ màu riêng từng đèn. Chỉ các đèn ghi “THÔNG MINH FPT” mới có các chức năng này.</p>}
         <table className="t"><thead><tr><th>STT</th><th>Hạng mục</th><th>Giá trị (đồng)</th></tr></thead><tbody>
           <tr><td className="c">1</td><td>Giải pháp FPT Smart Home (thiết bị sau giảm giá + lắp đặt, cấu hình)</td><td className="r">{vnd(q.shTotal)}</td></tr>
-          <tr><td className="c">2</td><td>Giải pháp chiếu sáng (sau chiết khấu)</td><td className="r">{vnd(q.lTotal)}</td></tr>
+          {hasLight && <tr><td className="c">2</td><td>Giải pháp chiếu sáng (sau chiết khấu)</td><td className="r">{vnd(q.lTotal)}</td></tr>}
           <tr className="b"><td colSpan={2}>TỔNG GIÁ TRỊ HỢP ĐỒNG</td><td className="r">{vnd(total)}</td></tr>
         </tbody></table>
 
@@ -93,7 +96,7 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
         </ul>
 
         <h3>Điều 6. Trách nhiệm của các bên</h3>
-        <p><b>Bên A:</b> chuẩn bị mặt bằng, đường dây nguồn, hộp âm tường theo bản vẽ thiết kế điện; tạo điều kiện cho Bên B thi công; thanh toán đúng hạn; tham gia nghiệm thu.</p>
+        <p><b>Bên A:</b> chuẩn bị mặt bằng, đường dây nguồn, hộp âm tường{rect ? " (đế chữ nhật)" : ""}, dây trung tính (N) tại vị trí công tắc và nguồn chờ cho động cơ rèm/thiết bị theo bản vẽ thiết kế điện; tạo điều kiện cho Bên B thi công; thanh toán đúng hạn; tham gia nghiệm thu.</p>
         <p><b>Bên B:</b> cung cấp đúng chủng loại, số lượng, hàng chính hãng mới 100%; lắp đặt, cấu hình, hướng dẫn sử dụng và bàn giao; thực hiện bảo hành theo Điều 5.</p>
 
         <h3>Điều 7. Xử lý tiền cọc và chấm dứt hợp đồng</h3>
@@ -118,12 +121,14 @@ export default function ContractDoc({ rec, backHref }: { rec: { payload: PrintPa
           <tr><td /><td>Lắp đặt, cài đặt cấu hình hệ thống</td><td className="c">Gói</td><td className="c">1</td><td className="r">{vnd(q.lapDat)}</td><td className="r">{vnd(q.lapDat)}</td></tr>
           {q.kmLapDat > 0 && <tr><td /><td>Lắp đặt, cài đặt hành trình cổng tự động – miễn phí (khuyến mãi hệ sinh thái FPT Smart Home)</td><td className="c">Gói</td><td className="c">1</td><td className="r">0</td><td className="r">0</td></tr>}
           <tr className="b"><td colSpan={5}>Cộng A</td><td className="r">{vnd(q.shTotal)}</td></tr>
+          {hasLight && <>
           <tr className="sec"><td colSpan={6}>B. GIẢI PHÁP CHIẾU SÁNG</td></tr>
           {lLines.map((l) => { n++; return <tr key={l.code}><td className="c">{n}</td><td>{l.name}{l.vn && <span className="vn">Hàng Việt Nam</span>}</td><td className="c">{l.unit}</td><td className="c">{l.qty}</td><td className="r">{vnd(l.price)}</td><td className="r">{vnd(l.total)}</td></tr>; })}
           <tr><td /><td>Chiết khấu chiếu sáng {Math.round(d.settings.lightDiscount * 100)}%</td><td /><td /><td /><td className="r">-{vnd(q.lCk)}</td></tr>
           {q.lInstall > 0 && <tr><td /><td>Lắp đặt đèn</td><td /><td /><td /><td className="r">{vnd(q.lInstall)}</td></tr>}
           <tr className="b"><td colSpan={5}>Cộng B</td><td className="r">{vnd(q.lTotal)}</td></tr>
-          <tr className="b red"><td colSpan={5}>TỔNG CỘNG (A + B)</td><td className="r">{vnd(total)}</td></tr>
+          </>}
+          <tr className="b red"><td colSpan={5}>{hasLight ? "TỔNG CỘNG (A + B)" : "TỔNG CỘNG"}</td><td className="r">{vnd(total)}</td></tr>
         </tbody></table>
         <p className="sm">Bằng chữ: <i>{q.grandWords}</i></p>
         <div className="sg"><div><b>ĐẠI DIỆN BÊN A</b><div className="nm">{P.customer.toUpperCase()}</div></div><div><b>ĐẠI DIỆN BÊN B</b><div className="nm">LÊ QUANG TOÀN</div></div></div>

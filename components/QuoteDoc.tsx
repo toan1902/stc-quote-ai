@@ -51,6 +51,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   const lightN = q.lightLines.reduce((a, l) => a + l.qty, 0);
   const smartN = q.lightLines.filter((l) => l.smart).reduce((a, l) => a + l.qty, 0);
   const plainN = lightN - smartN;
+  const noL = q.lightLines.length === 0;
   const lightTitle = !plainN ? "Smart Lighting – Đèn thông minh FPT" : !smartN ? "Chiếu sáng – đèn LED THƯỜNG thương hiệu AB" : "Chiếu sáng – đèn thông minh FPT + đèn LED thường AB";
   const lightKind = (l: { smart?: boolean }) => (l.smart ? <span className="smt">ĐÈN THÔNG MINH FPT</span> : <span className="nrm">ĐÈN THƯỜNG</span>);
   const upg = q.upgrade ?? { qty: 0, extra: 0 };
@@ -78,11 +79,11 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
           <tbody>
             <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swQ} công tắc cảm ứng, {hubN > 1 ? `${hubN} ` : ""}bộ trung tâm {hubName}{zbN ? " + mở rộng sóng ZigBee" : ""}{doorN ? `, ${doorN} công tắc cửa cuốn` : ""}{irN ? `, ${irN} bộ IR điều hòa` : ""}{gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
               <td className="r">{vnd(q.niem)}</td><td className="r">{vnd(q.giam)}</td><td className="r">{vnd(q.lapDat)}</td><td className="r b">{vnd(q.shTotal)}</td><td className="c">Phần 1<br />(4 trang)</td></tr>
-            <tr><td className="c">2</td><td><div className="it">{lightTitle}</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng){plainN > 0 ? ". Đèn thường: bật/tắt theo mạch qua công tắc FPT, không chỉnh sáng/màu từng đèn." : "."}</div></td>
-              <td className="r">{vnd(q.lNiem)}</td><td className="r">{vnd(-q.lCk)}</td><td className="r">{vnd(q.lInstall)}{!q.lInstall && <><br /><span className="gr sm">(thợ điện lắp)</span></>}</td><td className="r b">{vnd(q.lTotal)}</td><td className="c">Phần 2<br />(2 trang)</td></tr>
-            <tr className="tot"><td colSpan={2}>TỔNG GIÁ TRỊ 2 HẠNG MỤC</td><td className="r">{vnd(q.grandNiem)}</td><td className="r">{vnd(q.grandGiam)}</td><td className="r">{vnd(q.lapDat + q.lInstall)}</td><td className="r red">{vnd(q.grandTotal)}</td><td /></tr>
+{noL ? <tr><td className="c">2</td><td><div className="it">Chiếu sáng</div><div className="ds">Chưa báo giá – bản vẽ chưa có mặt bằng chiếu sáng. STC bổ sung khi nhận bản vẽ đèn.</div></td><td className="r">–</td><td className="r">–</td><td className="r">–</td><td className="r">–</td><td className="c">Bổ sung sau</td></tr> :             <tr><td className="c">2</td><td><div className="it">{lightTitle}</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng){plainN > 0 ? ". Đèn thường: bật/tắt theo mạch qua công tắc FPT, không chỉnh sáng/màu từng đèn." : "."}</div></td>
+              <td className="r">{vnd(q.lNiem)}</td><td className="r">{vnd(-q.lCk)}</td><td className="r">{vnd(q.lInstall)}{!q.lInstall && <><br /><span className="gr sm">(thợ điện lắp)</span></>}</td><td className="r b">{vnd(q.lTotal)}</td><td className="c">Phần 2<br />(2 trang)</td></tr>}
+            <tr className="tot"><td colSpan={2}>{noL ? "TỔNG GIÁ TRỊ BÁO GIÁ" : "TỔNG GIÁ TRỊ 2 HẠNG MỤC"}</td><td className="r">{vnd(q.grandNiem)}</td><td className="r">{vnd(q.grandGiam)}</td><td className="r">{vnd(q.lapDat + q.lInstall)}</td><td className="r red">{vnd(q.grandTotal)}</td><td /></tr>
           </tbody></table>
-        <div className="box grand"><div className="gl"><span>TỔNG CỘNG 2 HẠNG MỤC:</span><span>{vnd(q.grandTotal)}</span></div><div className="bc"><b>Bằng chữ:</b> {q.grandWords}</div></div>
+        <div className="box grand"><div className="gl"><span>{noL ? "TỔNG CỘNG:" : "TỔNG CỘNG 2 HẠNG MỤC:"}</span><span>{vnd(q.grandTotal)}</span></div><div className="bc"><b>Bằng chữ:</b> {q.grandWords}</div></div>
         <div className="box note"><div className="nt">GHI CHÚ:</div><ul>
           {plainNote && <li>{plainNote}</li>}
           <li>Chi tiết từng hạng mục xem ở các phần báo giá riêng đính kèm phía sau (Phần 1 – Smart Home, Phần 2 – Chiếu sáng).</li>
@@ -168,7 +169,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
 
       {/* 4. BỐ TRÍ CÔNG TẮC */}
       <section className="page"><Head right="BẢNG ĐẶC TẢ LỘ ĐIỆN | Trang 3/4 (Mặt bằng công tắc)" />
-        <h2>BỐ TRÍ CÔNG TẮC THÔNG MINH GẮN TƯỜNG ({swN} VỊ TRÍ)</h2>
+        <h2>BỐ TRÍ CÔNG TẮC THÔNG MINH {d.settings.switchShape === "rect" ? "CHỮ NHẬT " : ""}GẮN TƯỜNG ({swN} VỊ TRÍ)</h2>
         <table className="t sw"><thead><tr><th>STT</th><th>Tầng</th><th>Vị Trí Cụ Thể</th><th>Vật Tư</th><th>Công Năng Điều Khiển Thực Tế</th></tr></thead>
           <tbody>{[...new Set(boq.switches.map((s) => s.floor))].map((fl) => [
             <tr key={fl} className="sr"><td colSpan={5}>KHU VỰC: {fl.toUpperCase()}</td></tr>,
@@ -207,6 +208,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         <Sign kh={kh} /><Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 4 / 4" /></section>
 
       {/* 6. CHIẾU SÁNG (Excel style) */}
+      {!noL && <>
       <section className="page xl">
         <table className="xh"><tbody><tr><td className="xf"><img src={A + "i-001.png"} alt="" /></td>
           <td className="xc"><b>{CO}</b><br /><b>Trụ sở:</b> 104 Nguyễn Thượng Hiền, Phường Tân An, Tỉnh Đắk Lắk<br /><b>MST:</b> 6001584831<br /><b>Hotline:</b> 0823 047 047<br /><b>Email:</b> Stctelecom.dlk@gmail.com<br /><b>TK:</b> 0231 000 648 025 - Vietcombank CN Đắk Lắk<br /><b>Đại lý ủy quyền</b> FPT Smart Home khu vực Đắk Lắk</td>
@@ -239,6 +241,7 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         <div style={{ fontSize: 10, marginTop: 6 }}>Tổng cộng: {roomsN} bộ đèn theo bản vẽ chiếu sáng.{roomsN !== lightN && <b className="xred"> Bảng dự toán tính {lightN} bộ (đã điều chỉnh theo trao đổi với chủ nhà).</b>}</div>
         {excl && <div className="xred" style={{ fontSize: 10 }}>Ghi chú: Chưa bao gồm {excl}.</div>}
         <div className="xft"><span>{CO} – Hotline 0823 047 047</span><span>Trang 2</span><span>Báo giá - FPT SMART HOME</span></div></section>
+      </>}
 
       {/* 8. BẢN VẼ ĐỀ XUẤT (tuỳ chọn) */}
       {showProp && (d.drawings ?? []).map((dr, k) => (
