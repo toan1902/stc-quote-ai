@@ -27,6 +27,10 @@ export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { p
   const lLines = q.lightLines.filter((l) => showProp || !l.proposed);
   const hasLight = lLines.length > 0 && q.lTotal > 0;
   const rect = d.settings.switchShape === "rect";
+  const gLines = q.gateLines ?? [];
+  const hasGate = gLines.length > 0;
+  const gL = hasLight ? "C" : "B";
+  const parts = ["A", ...(hasLight ? ["B"] : []), ...(hasGate ? [gL] : [])];
   let n = 0;
 
   return (
@@ -70,6 +74,7 @@ export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { p
         <table className="t"><thead><tr><th>STT</th><th>Hạng mục</th><th>Giá trị (đồng)</th></tr></thead><tbody>
           <tr><td className="c">1</td><td>Giải pháp FPT Smart Home (thiết bị sau giảm giá + lắp đặt, cấu hình)</td><td className="r">{vnd(q.shTotal)}</td></tr>
           {hasLight && <tr><td className="c">2</td><td>Giải pháp chiếu sáng (sau chiết khấu)</td><td className="r">{vnd(q.lTotal)}</td></tr>}
+          {hasGate && <tr><td className="c">{hasLight ? 3 : 2}</td><td>Cổng tự động âm sàn AB Gate (sau giảm giá; lắp đặt, cài hành trình {q.kmLapDat > 0 ? "miễn phí" : "theo phụ lục"})</td><td className="r">{vnd(q.gTotal ?? 0)}</td></tr>}
           <tr className="b"><td colSpan={2}>TỔNG GIÁ TRỊ HỢP ĐỒNG</td><td className="r">{vnd(total)}</td></tr>
         </tbody></table>
 
@@ -97,7 +102,7 @@ export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { p
         <h3>Điều 5. Bảo hành và hỗ trợ</h3>
         <ul>
           <li>Bảo hành chính hãng tận nơi <b>24 tháng</b> kể từ ngày nghiệm thu đối với lỗi do nhà sản xuất. Miễn phí phần mềm FPT Life trọn đời.</li>
-          {shLines.some((l) => l.code === "gate_ab") && <li>Cổng tự động AB Gate: bảo hành theo chính sách của hãng AB Gate; Bên B bảo trì, hỗ trợ kỹ thuật tận nơi tại Đắk Lắk. Hạng mục hố/đế âm sàn, thoát nước hố motor, đường điện tới chân cổng, gia cố bản lề/cánh cổng và pin dự phòng không thuộc phạm vi hợp đồng.</li>}
+          {(hasGate || shLines.some((l) => l.code === "gate_ab")) && <li>Cổng tự động AB Gate: bảo hành theo chính sách của hãng AB Gate; Bên B bảo trì, hỗ trợ kỹ thuật tận nơi tại Đắk Lắk. Hạng mục hố/đế âm sàn, thoát nước hố motor, đường điện tới chân cổng, gia cố bản lề/cánh cổng và pin dự phòng không thuộc phạm vi hợp đồng.</li>}
           <li>Không bảo hành với hư hỏng do sét đánh, nước vào, điện áp bất thường, va đập, cháy nổ hoặc tự ý tháo lắp, sửa chữa.</li>
           <li>Hỗ trợ trực tuyến khi phát sinh lỗi kết nối sau nghiệm thu; xử lý tận nơi ngoài phạm vi bảo hành có tính phí theo thỏa thuận.</li>
         </ul>
@@ -126,7 +131,7 @@ export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { p
           <tr className="sec"><td colSpan={6}>A. GIẢI PHÁP FPT SMART HOME</td></tr>
           {shLines.map((l) => { n++; return <tr key={l.code}><td className="c">{n}</td><td>{l.name}{l.vn && <span className="vn">Hàng Việt Nam</span>}</td><td className="c">{l.unit}</td><td className="c">{l.qty}</td><td className="r">{vnd(l.after)}</td><td className="r">{vnd(l.total)}</td></tr>; })}
           <tr><td /><td>Lắp đặt, cài đặt cấu hình hệ thống</td><td className="c">Gói</td><td className="c">1</td><td className="r">{vnd(q.lapDat)}</td><td className="r">{vnd(q.lapDat)}</td></tr>
-          {q.kmLapDat > 0 && <tr><td /><td>Lắp đặt, cài đặt hành trình cổng tự động – miễn phí (khuyến mãi hệ sinh thái FPT Smart Home)</td><td className="c">Gói</td><td className="c">1</td><td className="r">0</td><td className="r">0</td></tr>}
+          {!hasGate && q.kmLapDat > 0 && <tr><td /><td>Lắp đặt, cài đặt hành trình cổng tự động – miễn phí (khuyến mãi hệ sinh thái FPT Smart Home)</td><td className="c">Gói</td><td className="c">1</td><td className="r">0</td><td className="r">0</td></tr>}
           <tr className="b"><td colSpan={5}>Cộng A</td><td className="r">{vnd(q.shTotal)}</td></tr>
           {hasLight && <>
           <tr className="sec"><td colSpan={6}>B. GIẢI PHÁP CHIẾU SÁNG</td></tr>
@@ -135,7 +140,13 @@ export default function ContractDoc({ rec, backHref, partyA, draft }: { rec: { p
           {q.lInstall > 0 && <tr><td /><td>Lắp đặt đèn</td><td /><td /><td /><td className="r">{vnd(q.lInstall)}</td></tr>}
           <tr className="b"><td colSpan={5}>Cộng B</td><td className="r">{vnd(q.lTotal)}</td></tr>
           </>}
-          <tr className="b red"><td colSpan={5}>{hasLight ? "TỔNG CỘNG (A + B)" : "TỔNG CỘNG"}</td><td className="r">{vnd(total)}</td></tr>
+          {hasGate && <>
+          <tr className="sec"><td colSpan={6}>{gL}. CỔNG TỰ ĐỘNG ÂM SÀN AB GATE</td></tr>
+          {gLines.map((l) => { n++; return <tr key={l.code}><td className="c">{n}</td><td>{l.name}{l.vn && <span className="vn">Hàng Việt Nam</span>}</td><td className="c">{l.unit}</td><td className="c">{l.qty}</td><td className="r">{vnd(l.after)}</td><td className="r">{vnd(l.total)}</td></tr>; })}
+          <tr><td /><td>Lắp đặt, cài đặt hành trình cổng tự động{q.kmLapDat > 0 ? " – miễn phí (khuyến mãi hệ sinh thái FPT Smart Home)" : ""}</td><td className="c">Gói</td><td className="c">1</td><td className="r">{vnd(q.gInstall ?? 0)}</td><td className="r">{vnd(q.gInstall ?? 0)}</td></tr>
+          <tr className="b"><td colSpan={5}>Cộng {gL}</td><td className="r">{vnd(q.gTotal ?? 0)}</td></tr>
+          </>}
+          <tr className="b red"><td colSpan={5}>{parts.length > 1 ? `TỔNG CỘNG (${parts.join(" + ")})` : "TỔNG CỘNG"}</td><td className="r">{vnd(total)}</td></tr>
         </tbody></table>
         <p className="sm">Bằng chữ: <i>{q.grandWords}</i></p>
         <div className="sg"><div><b>ĐẠI DIỆN BÊN A</b><div className="nm">{P.customer.toUpperCase()}</div></div><div><b>ĐẠI DIỆN BÊN B</b><div className="nm">LÊ QUANG TOÀN</div></div></div>

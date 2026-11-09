@@ -27,7 +27,7 @@ const Card = ({ ic, t, children }: { ic: string; t: React.ReactNode; children: R
 
 /** The 7-page STC CROP quote (+ optional proposal drawing pages). Shared by /quote/print and the public link /q/[id]. */
 /** công tắc cửa cuốn/cổng không đi kèm bộ cổng AB Gate */
-function gateSwOnly(q: Quote) { const ls = q.sections.flatMap((s) => s.lines); return ls.some((l) => l.code === "gate_ab") ? 0 : ls.filter((l) => l.code === "gate_sw").reduce((a, l) => a + l.qty, 0); }
+function gateSwOnly(q: Quote) { const ls = q.sections.flatMap((s) => s.lines); return ls.some((l) => l.code === "gate_ab") || (q.gateLines?.length ?? 0) > 0 ? 0 : ls.filter((l) => l.code === "gate_sw").reduce((a, l) => a + l.qty, 0); }
 
 export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: ReactNode }) {
   const { project: P, boq, quote: q, checks } = d;
@@ -46,12 +46,17 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
   for (const [code, out] of [["cam_out", true], ["cam_in", false]] as const) { let extra = qn(code) - camRows.filter((c) => c.out === out).length; while (extra-- > 0) camRows.push({ floor: "", room: "vị trí bổ sung (thống nhất khi khảo sát)", out }); }
   const camList = camRows.filter((c, i) => camRows.slice(0, i + 1).filter((x) => x.out === c.out).length <= qn(c.out ? "cam_out" : "cam_in"));
   const hubName = q.sections.flatMap((s) => s.lines).find((l) => l.code === "hub" || l.code === "hub_pb650")?.name.replace(/^Bộ điều khiển trung tâm /, "") ?? "FPT T950";
-  const gateLine = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_ab");
+  // cổng AB Gate: báo giá mới tách riêng (q.gateLines) như chiếu sáng; báo giá cũ đã lưu vẫn nằm trong Smart Home
+  const gSep = (q.gateLines?.length ?? 0) > 0;
+  const gateLine = q.gateLines?.[0] ?? q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_ab");
+  const gateSwN = gSep ? qn("gate_sw") : 0;
+  const gTotal = gSep ? q.gTotal ?? gateLine!.total : gateLine?.total ?? 0;
   const gateN = gateLine?.qty ?? 0;
   const lightN = q.lightLines.reduce((a, l) => a + l.qty, 0);
   const smartN = q.lightLines.filter((l) => l.smart).reduce((a, l) => a + l.qty, 0);
   const plainN = lightN - smartN;
   const noL = q.lightLines.length === 0;
+  const nItems = 1 + (noL ? 0 : 1) + (gSep ? 1 : 0);
   const lightProps = (q.proposals ?? []).filter((g) => g.lines.some((l) => l.section === "light"));
   const lightTitle = !plainN ? "Smart Lighting – Đèn thông minh FPT" : !smartN ? "Chiếu sáng – đèn LED THƯỜNG thương hiệu AB" : "Chiếu sáng – đèn thông minh FPT + đèn LED thường AB";
   const lightKind = (l: { smart?: boolean }) => (l.smart ? <span className="smt">ĐÈN THÔNG MINH FPT</span> : <span className="nrm">ĐÈN THƯỜNG</span>);
@@ -74,11 +79,39 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
             <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ NIÊM YẾT:</span><b>{vnd(q.niem)}</b></div>
             <div className="tl gr"><span>GIẢM GIÁ ƯU ĐÃI THIẾT BỊ (động cơ rèm 30%, thiết bị mở rộng sóng 10%, còn lại 20%):</span><b>{vnd(q.giam)}</b></div>
             <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ SAU GIẢM GIÁ:</span><b>{vnd(q.sau)}</b></div>
-            <div className="tl"><span>CHI PHÍ LẮP ĐẶT, CÀI ĐẶT CẤU HÌNH{q.kmLapDat ? " (gồm cài đặt hành trình cổng)" : ""}:</span><b>{vnd(q.lapDat + (q.kmLapDat ?? 0))}</b></div>
-            {q.kmLapDat > 0 && <div className="tl gr"><span>KHUYẾN MÃI MIỄN PHÍ LẮP ĐẶT CỔNG TỰ ĐỘNG KHI CHỌN HỆ SINH THÁI FPT SMART HOME:</span><b>{vnd(-q.kmLapDat)}</b></div>}
+            <div className="tl"><span>CHI PHÍ LẮP ĐẶT, CÀI ĐẶT CẤU HÌNH{!gSep && q.kmLapDat ? " (gồm cài đặt hành trình cổng)" : ""}:</span><b>{vnd(q.lapDat + (!gSep ? q.kmLapDat ?? 0 : 0))}</b></div>
+            {!gSep && q.kmLapDat > 0 && <div className="tl gr"><span>KHUYẾN MÃI MIỄN PHÍ LẮP ĐẶT CỔNG TỰ ĐỘNG KHI CHỌN HỆ SINH THÁI FPT SMART HOME:</span><b>{vnd(-q.kmLapDat)}</b></div>}
             <div className="gl"><span>TỔNG CỘNG GÓI GIẢI PHÁP HOÀN THIỆN:</span><span>{vnd(q.shTotal)}</span></div>
             <div className="bc"><b>Bằng chữ:</b> {q.shWords}</div></div>
         <Sign kh={kh} /></>);
+
+  /** trang dự toán cổng tự động âm sàn AB Gate */
+  const gatePage = gateLine && (
+        <section className="page"><Head right={gSep ? "PHẦN 3 – CỔNG TỰ ĐỘNG | Dự toán cổng âm sàn" : "PHỤ LỤC CỔNG TỰ ĐỘNG | Dự toán cổng âm sàn"} />
+          <h1>BẢNG DỰ TOÁN CỔNG TỰ ĐỘNG ÂM SÀN AB GATE</h1>
+          <Info kh={kh} dc={dc} r1={<><b>Ngày lập báo giá:</b> {P.date}</>} r2={<><b>Thương hiệu:</b> AB Gate – <span className="vn">Hàng Việt Nam</span></>} />
+          <table className="t dt gt"><thead><tr><th>STT</th><th>Tên Thiết Bị &amp; Thông Số Kỹ Thuật</th><th>ĐVT</th><th>SL</th><th>Đơn Giá (đ)</th><th>Giảm (đ)</th><th>Giá Giảm (đ)</th><th>Thành Tiền (đ)</th></tr></thead>
+            <tbody>
+              <tr className="sr"><td colSpan={7}>I. Giải pháp cổng tự động âm sàn</td><td className="r">{vnd(gateLine.total)}</td></tr>
+              <tr><td className="c">1</td><td><div className="it">{gateLine.name}</div><div className="ds">{gateLine.desc}</div>{gateLine.kit && <div className="ds"><i>{gateLine.kit}</i></div>}{gateLine.warn && <div className="ds wr">{gateLine.warn}</div>}{gateLine.img && <img className="gimg" src={gateLine.img} alt="" />}</td>
+                <td className="c">{gateLine.unit}</td><td className="c">{gateLine.qty}</td><td className="r">{vnd(gateLine.price)}</td><td className="r">{vnd(gateLine.after - gateLine.price)}</td><td className="r">{vnd(gateLine.after)}</td><td className="r">{vnd(gateLine.total)}</td></tr>
+            </tbody></table>
+          <div className="box tots">
+            <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ NIÊM YẾT:</span><b>{vnd(gateLine.listTotal)}</b></div>
+            <div className="tl gr"><span>GIẢM GIÁ ƯU ĐÃI THIẾT BỊ:</span><b>{vnd(gateLine.total - gateLine.listTotal)}</b></div>
+            <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ SAU GIẢM GIÁ:</span><b>{vnd(gateLine.total)}</b></div>
+            <div className="tl"><span>CHI PHÍ LẮP ĐẶT, CÀI ĐẶT HÀNH TRÌNH ({Math.round(d.settings.installRate * 100)}% giá niêm yết):</span><b>{vnd(q.kmLapDat + (gSep ? q.gInstall ?? 0 : 0))}</b></div>
+            {q.kmLapDat > 0 && <div className="tl gr"><span>KHUYẾN MÃI MIỄN PHÍ LẮP ĐẶT KHI CHỌN HỆ SINH THÁI FPT SMART HOME:</span><b>{vnd(-q.kmLapDat)}</b></div>}
+                        <div className="gl"><span>TỔNG CỘNG CỔNG TỰ ĐỘNG:</span><span>{vnd(gTotal)}</span></div>
+            <div className="bc"><b>Bằng chữ:</b> {docSo(gTotal)}</div></div>
+          <div className="box note"><div className="nt">GHI CHÚ &amp; ĐIỀU KHOẢN:</div><ul>
+            <li><b>Khuyến mãi:</b> Miễn phí toàn bộ chi phí lắp đặt, cài đặt hành trình động cơ cổng khi khách hàng chọn hệ sinh thái FPT Smart Home của STC.</li>
+            <li><b>Kết nối nhà thông minh:</b> Điều khiển cổng qua <b>Công tắc điều khiển động cơ cổng FPT</b> – đã có trong Bảng dự toán Smart Home, không tính lại ở báo giá này.</li>
+            <li><b>Chưa bao gồm:</b> Pin dự phòng (lưu trữ) Lithium dùng khi mất điện; phần xây dựng hố/đế âm sàn, thoát nước hố motor, đi ống &amp; dây điện nguồn tới chân cổng; gia cố bản lề/cánh cổng (nếu cần).</li>
+            <li><b>Bảo hành:</b> Theo chính sách hãng AB Gate. Bảo trì, hỗ trợ kỹ thuật tận nơi tại Đắk Lắk.</li>
+            <li><b>Thanh toán:</b> 50% khi đặt hàng, 40% khi giao thiết bị tới công trình, 10% sau khi lắp đặt bàn giao nghiệm thu.</li></ul></div>
+          <Sign kh={kh} /><Foot title="DỰ TOÁN CỔNG TỰ ĐỘNG ÂM SÀN" pg={gSep ? "Phần 3 – Trang 1 / 1" : "Phụ lục cổng"} /></section>
+  );
 
   return (
     <div className="qroot">
@@ -90,18 +123,20 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         <Info kh={kh} dc={dc} r1={<><b>Ngày lập báo giá:</b> {P.date}</>} r2={<><b>Hiệu lực báo giá:</b> 7 ngày kể từ ngày lập</>} />
         <table className="t sum"><thead><tr><th style={{ width: "5%" }}>STT</th><th>Hạng mục báo giá</th><th style={{ width: "13%" }}>Thiết bị niêm yết (đ)</th><th style={{ width: "12%" }}>Giảm giá (đ)</th><th style={{ width: "11%" }}>Lắp đặt (đ)</th><th style={{ width: "13%" }}>Tổng cộng (đ)</th><th style={{ width: "9%" }}>Chi tiết</th></tr></thead>
           <tbody>
-            <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swQ} công tắc cảm ứng, {hubN > 1 ? `${hubN} ` : ""}bộ trung tâm {hubName}{zbN ? " + mở rộng sóng ZigBee" : ""}{doorN ? `, ${doorN} công tắc cửa cuốn` : ""}{irN ? `, ${irN} bộ IR điều hòa` : ""}{gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
+            <tr><td className="c">1</td><td><div className="it">Smart Home FPT</div><div className="ds">{swQ} công tắc cảm ứng, {hubN > 1 ? `${hubN} ` : ""}bộ trung tâm {hubName}{zbN ? " + mở rộng sóng ZigBee" : ""}{doorN ? `, ${doorN} công tắc cửa cuốn` : ""}{irN ? `, ${irN} bộ IR điều hòa` : ""}{!gSep && gateN ? `, ${gateN} bộ cổng tự động âm sàn AB` : ""}{gateSwN ? `, ${gateSwN} công tắc điều khiển cổng` : ""}{curN ? `, ${curN} bộ rèm tự động (${railM}m ray)` : ""}{camN ? `, ${camN} camera AI` : ""}</div></td>
               <td className="r">{vnd(q.niem)}</td><td className="r">{vnd(q.giam)}</td><td className="r">{vnd(q.lapDat)}</td><td className="r b">{vnd(q.shTotal)}</td><td className="c">Phần 1<br />(4 trang)</td></tr>
 {noL ? <tr><td className="c">2</td><td>{lightProps.length ? <><div className="it">Chiếu sáng – ĐỀ XUẤT (chưa tính vào tổng)</div><div className="ds">{lightProps.map((g) => `${g.group}: ${vnd(g.est)}đ`).join("; ")} – xem trang Đề xuất thêm.</div></> : <><div className="it">Chiếu sáng</div><div className="ds">Chưa báo giá – bản vẽ chưa có mặt bằng chiếu sáng. STC bổ sung khi nhận bản vẽ đèn.</div></>}</td><td className="r">–</td><td className="r">–</td><td className="r">–</td><td className="r">–</td><td className="c">{lightProps.length ? "Đề xuất" : "Bổ sung sau"}</td></tr> :             <tr><td className="c">2</td><td><div className="it">{lightTitle}</div><div className="ds">{lightN} bộ đèn: {q.lightLines.map((l) => `${l.qty} ${l.name.replace(/^Đèn (LED )?/i, "")}`).join(", ")} (khớp bản vẽ chiếu sáng){plainN > 0 ? ". Đèn thường: bật/tắt theo mạch qua công tắc FPT, không chỉnh sáng/màu từng đèn." : "."}</div></td>
               <td className="r">{vnd(q.lNiem)}</td><td className="r">{vnd(-q.lCk)}</td><td className="r">{vnd(q.lInstall)}{!q.lInstall && <><br /><span className="gr sm">(thợ điện lắp)</span></>}</td><td className="r b">{vnd(q.lTotal)}</td><td className="c">Phần 2<br />(2 trang)</td></tr>}
-            <tr className="tot"><td colSpan={2}>{noL ? "TỔNG GIÁ TRỊ BÁO GIÁ" : "TỔNG GIÁ TRỊ 2 HẠNG MỤC"}</td><td className="r">{vnd(q.grandNiem)}</td><td className="r">{vnd(q.grandGiam)}</td><td className="r">{vnd(q.lapDat + q.lInstall)}</td><td className="r red">{vnd(q.grandTotal)}</td><td /></tr>
+            {gSep && gateLine && <tr><td className="c">3</td><td><div className="it">Cổng tự động âm sàn AB Gate<span className="vn">Hàng Việt Nam</span></div><div className="ds">{gateLine.qty} bộ động cơ cổng âm sàn AB Gate 24V trọn bộ 2 cánh (2 động cơ + 2 hộp đế inox, tủ điều khiển, cảm biến an toàn, 2 remote){q.kmLapDat ? "; miễn phí lắp đặt, cài hành trình khi chọn hệ sinh thái FPT Smart Home" : ""}</div></td>
+              <td className="r">{vnd(q.gNiem ?? 0)}</td><td className="r">{vnd(q.gGiam ?? 0)}</td><td className="r">{vnd(q.gInstall ?? 0)}{q.kmLapDat > 0 && <><br /><span className="gr sm">(KM miễn phí)</span></>}</td><td className="r b">{vnd(gTotal)}</td><td className="c">Phần 3<br />(1 trang)</td></tr>}
+            <tr className="tot"><td colSpan={2}>{nItems > 1 ? `TỔNG GIÁ TRỊ ${nItems} HẠNG MỤC` : "TỔNG GIÁ TRỊ BÁO GIÁ"}</td><td className="r">{vnd(q.grandNiem)}</td><td className="r">{vnd(q.grandGiam)}</td><td className="r">{vnd(q.lapDat + q.lInstall + (q.gInstall ?? 0))}</td><td className="r red">{vnd(q.grandTotal)}</td><td /></tr>
           </tbody></table>
-        <div className="box grand"><div className="gl"><span>{noL ? "TỔNG CỘNG:" : "TỔNG CỘNG 2 HẠNG MỤC:"}</span><span>{vnd(q.grandTotal)}</span></div><div className="bc"><b>Bằng chữ:</b> {q.grandWords}</div></div>
+        <div className="box grand"><div className="gl"><span>{nItems > 1 ? `TỔNG CỘNG ${nItems} HẠNG MỤC:` : "TỔNG CỘNG:"}</span><span>{vnd(q.grandTotal)}</span></div><div className="bc"><b>Bằng chữ:</b> {q.grandWords}</div></div>
         <div className="box note"><div className="nt">GHI CHÚ:</div><ul>
           {plainNote && <li>{plainNote}</li>}
           {(q.proposals ?? []).map((g) => <li key={g.group}><b>Đề xuất thêm – {g.group}:</b> dự kiến {vnd(g.est)}đ (chưa tính vào tổng, xem trang Đề xuất thêm).</li>)}
           <li><b>Hiệu lực báo giá 7 ngày</b> kể từ ngày lập. Chính sách chiết khấu áp dụng tùy thời điểm – hết hiệu lực, đơn giá và mức chiết khấu được cập nhật theo chương trình hiện hành.</li>
-          <li>Chi tiết từng hạng mục xem ở các phần báo giá riêng đính kèm phía sau (Phần 1 – Smart Home, Phần 2 – Chiếu sáng).</li>
+          <li>Chi tiết từng hạng mục xem ở các phần báo giá riêng đính kèm phía sau (Phần 1 – Smart Home, Phần 2 – Chiếu sáng{gSep ? ", Phần 3 – Cổng tự động âm sàn" : ""}).</li>
           <li>Số lượng thiết bị bóc tách từ hồ sơ thiết kế điện công trình{P.sourceName ? ` (${P.sourceName})` : ""}; khối lượng ghi “ước tính” cần đo lại thực tế.</li>
           {excl && <li>Chiếu sáng: phí lắp đặt 0đ – đèn do thợ điện công trình lắp đặt. Chưa bao gồm {excl}.</li>}
           {gateN > 0 && <li><b>Cổng tự động AB Gate:</b> miễn phí lắp đặt, cài đặt hành trình khi chọn hệ sinh thái FPT Smart Home; điều khiển cổng qua công tắc FPT &amp; app. Chưa bao gồm pin dự phòng Lithium, hố/đế âm sàn, thoát nước hố motor, ống &amp; dây điện nguồn tới chân cổng, gia cố bản lề/cánh cổng. Bảo hành theo chính sách hãng AB Gate, bảo trì tận nơi tại Đắk Lắk.</li>}
@@ -147,33 +182,8 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         {dtSplit ? <><p className="note" style={{ textAlign: "right", fontStyle: "italic", margin: "4px 0 0" }}>(Tổng cộng &amp; ký xác nhận – xem trang tiếp theo)</p><Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 2 / 4" /></> : <>{dtTail}<Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 2 / 4" /></>}</section>
       {dtSplit && <section className="page"><Head right="PHỤ LỤC HỢP ĐỒNG 01 | Trang 2/4 (tiếp – Tổng cộng)" /><h1>BẢNG DỰ TOÁN SMART HOME FPT (tiếp)</h1>{dtTail}<Foot title="BẢNG DỰ TOÁN SMART HOME FPT" pg="Trang 2 / 4 (tiếp)" /></section>}
 
-      {/* 3b. DỰ TOÁN CỔNG TỰ ĐỘNG (khi có) */}
-      {gateLine && (
-        <section className="page"><Head right="PHỤ LỤC CỔNG TỰ ĐỘNG | Dự toán cổng âm sàn" />
-          <h1>BẢNG DỰ TOÁN CỔNG TỰ ĐỘNG ÂM SÀN AB GATE</h1>
-          <Info kh={kh} dc={dc} r1={<><b>Ngày lập báo giá:</b> {P.date}</>} r2={<><b>Thương hiệu:</b> AB Gate – <span className="vn">Hàng Việt Nam</span></>} />
-          <table className="t dt gt"><thead><tr><th>STT</th><th>Tên Thiết Bị &amp; Thông Số Kỹ Thuật</th><th>ĐVT</th><th>SL</th><th>Đơn Giá (đ)</th><th>Giảm (đ)</th><th>Giá Giảm (đ)</th><th>Thành Tiền (đ)</th></tr></thead>
-            <tbody>
-              <tr className="sr"><td colSpan={7}>I. Giải pháp cổng tự động âm sàn</td><td className="r">{vnd(gateLine.total)}</td></tr>
-              <tr><td className="c">1</td><td><div className="it">{gateLine.name}</div><div className="ds">{gateLine.desc}</div>{gateLine.kit && <div className="ds"><i>{gateLine.kit}</i></div>}{gateLine.warn && <div className="ds wr">{gateLine.warn}</div>}{gateLine.img && <img className="gimg" src={gateLine.img} alt="" />}</td>
-                <td className="c">{gateLine.unit}</td><td className="c">{gateLine.qty}</td><td className="r">{vnd(gateLine.price)}</td><td className="r">{vnd(gateLine.after - gateLine.price)}</td><td className="r">{vnd(gateLine.after)}</td><td className="r">{vnd(gateLine.total)}</td></tr>
-            </tbody></table>
-          <div className="box tots">
-            <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ NIÊM YẾT:</span><b>{vnd(gateLine.listTotal)}</b></div>
-            <div className="tl gr"><span>GIẢM GIÁ ƯU ĐÃI THIẾT BỊ:</span><b>{vnd(gateLine.total - gateLine.listTotal)}</b></div>
-            <div className="tl"><span>TỔNG GIÁ TRỊ THIẾT BỊ SAU GIẢM GIÁ:</span><b>{vnd(gateLine.total)}</b></div>
-            <div className="tl"><span>CHI PHÍ LẮP ĐẶT, CÀI ĐẶT HÀNH TRÌNH ({Math.round(d.settings.installRate * 100)}% giá niêm yết):</span><b>{vnd(q.kmLapDat)}</b></div>
-            <div className="tl gr"><span>KHUYẾN MÃI MIỄN PHÍ LẮP ĐẶT KHI CHỌN HỆ SINH THÁI FPT SMART HOME:</span><b>{vnd(-q.kmLapDat)}</b></div>
-            <div className="gl"><span>TỔNG CỘNG:</span><span>{vnd(gateLine.total)}</span></div>
-            <div className="bc"><b>Bằng chữ:</b> {docSo(gateLine.total)}</div></div>
-          <div className="box note"><div className="nt">GHI CHÚ &amp; ĐIỀU KHOẢN:</div><ul>
-            <li><b>Khuyến mãi:</b> Miễn phí toàn bộ chi phí lắp đặt, cài đặt hành trình động cơ cổng khi khách hàng chọn hệ sinh thái FPT Smart Home của STC.</li>
-            <li><b>Kết nối nhà thông minh:</b> Điều khiển cổng qua <b>Công tắc điều khiển động cơ cổng FPT</b> – đã có trong Bảng dự toán Smart Home, không tính lại ở báo giá này.</li>
-            <li><b>Chưa bao gồm:</b> Pin dự phòng (lưu trữ) Lithium dùng khi mất điện; phần xây dựng hố/đế âm sàn, thoát nước hố motor, đi ống &amp; dây điện nguồn tới chân cổng; gia cố bản lề/cánh cổng (nếu cần).</li>
-            <li><b>Bảo hành:</b> Theo chính sách hãng AB Gate. Bảo trì, hỗ trợ kỹ thuật tận nơi tại Đắk Lắk.</li>
-            <li><b>Thanh toán:</b> 50% khi đặt hàng, 40% khi giao thiết bị tới công trình, 10% sau khi lắp đặt bàn giao nghiệm thu.</li></ul></div>
-          <Sign kh={kh} /><Foot title="DỰ TOÁN CỔNG TỰ ĐỘNG ÂM SÀN" pg="Phụ lục cổng" /></section>
-      )}
+      {/* 3b. DỰ TOÁN CỔNG TỰ ĐỘNG – báo giá cũ (cổng nằm trong Smart Home) */}
+      {!gSep && gatePage}
 
       {/* 4. BỐ TRÍ CÔNG TẮC */}
       <section className="page"><Head right="BẢNG ĐẶC TẢ LỘ ĐIỆN | Trang 3/4 (Mặt bằng công tắc)" />
@@ -268,6 +278,9 @@ export default function QuoteDoc({ d, toolbar }: { d: PrintPayload; toolbar?: Re
         {excl && <div className="xred" style={{ fontSize: 10 }}>Ghi chú: Chưa bao gồm {excl}.</div>}
         <div className="xft"><span>{CO} – Hotline 0823 047 047</span><span>Trang 2</span><span>Báo giá - FPT SMART HOME</span></div></section>
       </>}
+
+      {/* PHẦN 3. CỔNG TỰ ĐỘNG ÂM SÀN – hạng mục riêng như chiếu sáng */}
+      {gSep && gatePage}
 
       {/* 8. BẢN VẼ ĐỀ XUẤT (tuỳ chọn) */}
       {showProp && (d.drawings ?? []).map((dr, k) => (

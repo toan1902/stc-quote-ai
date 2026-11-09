@@ -171,26 +171,30 @@ test("proposal: proposed spotlights are a separate priced line, excluded when un
   assert.ok(!crossCheck(p).some((c) => c.message.includes("chưa đọc được số mạch") && c.detectionIds.some((id) => id.startsWith("s"))));
 });
 
-test("gate AB: only quoted once a price is set; adds 1 gate switch per gate", () => {
+test("gate AB: only quoted once a price is set; separate item (Phần 3) + 1 gate switch in Smart Home", () => {
   const boq = buildBOQ(load(), DEFAULT_SETTINGS);
-  const none = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 });
-  assert.ok(!computeQuote(boq, DEFAULT_CATALOG.map((c) => (c.code === "gate_ab" ? { ...c, price: 0 } : c)), DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 }).sections.flatMap((s) => s.lines).some((l) => l.code === "gate_ab"), "price 0 → not quoted"); void none;
-  const cat = DEFAULT_CATALOG;
-  const q = computeQuote(boq, cat, DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 });
+  const q0 = computeQuote(boq, DEFAULT_CATALOG.map((c) => (c.code === "gate_ab" ? { ...c, price: 0 } : c)), DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 });
+  assert.equal(q0.gateLines?.length ?? 0, 0, "price 0 → not quoted");
+  const q = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 });
+  assert.ok(!q.sections.flatMap((s) => s.lines).some((l) => l.code === "gate_ab"), "bộ cổng không nằm trong Smart Home");
   const gl = q.sections.find((s) => s.key === "gate")!;
-  assert.deepEqual(gl.lines.map((l) => [l.code, l.qty]), [["gate_ab", 1], ["gate_sw", 1]]);
-  assert.ok(gl.lines[0].vn);
+  assert.deepEqual(gl.lines.map((l) => [l.code, l.qty]), [["gate_sw", 1]]);
+  assert.deepEqual(q.gateLines!.map((l) => [l.code, l.qty]), [["gate_ab", 1]]);
+  assert.ok(q.gateLines![0].vn);
 });
 
-test("AB Gate: 38.390.000 list → 30.000.000 sale, install free (15% promo shown), total +30.000.000 + gate switch", () => {
+test("AB Gate separate like lighting: 38.390.000 list → 30.000.000, install free (15% promo), grand total = SH + đèn + cổng", () => {
   const boq = buildBOQ(load(), DEFAULT_SETTINGS);
   const base = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS);
   const q = computeQuote(boq, DEFAULT_CATALOG, DEFAULT_SETTINGS, { gate_ab: 1, gate_sw: 1 });
-  const g = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_ab")!;
+  const g = q.gateLines![0];
   assert.equal(g.price, 38390000); assert.equal(g.after, 30000000);
   assert.equal(q.kmLapDat, 5758500);
+  assert.equal(q.gNiem, 38390000); assert.equal(q.gGiam, -8390000); assert.equal(q.gInstall, 0); assert.equal(q.gTotal, 30000000);
   const sw = q.sections.flatMap((s) => s.lines).find((l) => l.code === "gate_sw")!;
-  assert.equal(q.shTotal - base.shTotal, 30000000 + sw.after + Math.round(sw.price * 0.15));
+  assert.equal(q.shTotal - base.shTotal, sw.after + Math.round(sw.price * 0.15), "Smart Home chỉ tăng công tắc cổng");
+  assert.equal(q.grandTotal, q.shTotal + q.lTotal + 30000000);
+  assert.equal(q.grandNiem - base.grandNiem, 38390000 + sw.price);
 });
 
 test("lighting: AB lights labelled ordinary, FPT smart prices match FPT retail list, upgrade cost computed", () => {

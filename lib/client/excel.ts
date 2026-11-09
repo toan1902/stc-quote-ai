@@ -7,7 +7,7 @@ import type { CrossCheck } from "../core/types";
 const NAVY = "FF1D3A89", HDR = "FF0F172A", SEC = "FFE0F2FE", SECF = "FF0369A1", BLUE = "FF0000FF", GREEN = "FF008000";
 const NUM = "#,##0;\\-#,##0;\\-";
 
-/** 4-sheet Excel with live formulas (Principle V). Quantities link to the 'Bóc tách' sheet. */
+/** 4–5-sheet Excel (thêm sheet Cổng âm sàn khi có) with live formulas (Principle V). Quantities link to the 'Bóc tách' sheet. */
 export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settings, checks: CrossCheck[]): Promise<ArrayBuffer> {
   const ExcelJS = (await import("exceljs")).default;
   const wb = new ExcelJS.Workbook();
@@ -139,14 +139,50 @@ export async function buildExcel(p: Project, boq: BOQResult, q: Quote, s: Settin
   }
   [6, 46, 7, 8, 16, 18].forEach((w, k) => (cs.getColumn(k + 1).width = w));
 
+  // ---------- Cổng âm sàn (hạng mục riêng như chiếu sáng) ----------
+  const G: Record<string, number> = {};
+  const gl = q.gateLines ?? [];
+  if (gl.length) {
+    const cg = wb.addWorksheet("Cổng âm sàn");
+    header(cg, "BẢNG DỰ TOÁN CỔNG TỰ ĐỘNG ÂM SÀN AB GATE", 8);
+    hrow(cg, 8, ["STT", "Thiết bị", "ĐVT", "SL", "Đơn giá niêm yết (đ)", "Giá sau giảm (đ)", "Thành tiền (đ)", "Thành tiền niêm yết (đ)"]);
+    r = 9;
+    gl.forEach((l, k) => {
+      cg.getRow(r).values = [k + 1, l.name + (l.warn ? ` – ${l.warn}` : ""), l.unit, l.qty, l.price, l.after, { formula: `F${r}*D${r}` }, { formula: `E${r}*D${r}` }];
+      [4, 5, 6].forEach((c) => (cg.getCell(r, c).font = font({ color: BLUE })));
+      [5, 6, 7, 8].forEach((c) => (cg.getCell(r, c).numFmt = NUM));
+      for (let c = 1; c <= 8; c++) cg.getCell(r, c).border = border;
+      cg.getCell(r, 2).alignment = { wrapText: true }; r++;
+    });
+    const gEnd = r - 1; r++;
+    G.rate = r; cg.getCell(r, 2).value = "Tỷ lệ phí lắp đặt, cài hành trình (trên giá niêm yết)"; cg.getCell(r, 7).value = s.installRate; cg.getCell(r, 7).numFmt = "0%"; cg.getCell(r, 7).font = font({ color: BLUE }); r++;
+    G.free = r; cg.getCell(r, 2).value = "Miễn phí lắp đặt khi chọn hệ sinh thái FPT Smart Home (1 = có, 0 = không)"; cg.getCell(r, 7).value = q.kmLapDat > 0 ? 1 : 0; cg.getCell(r, 7).font = font({ color: BLUE }); r++;
+    for (const [k, label] of [["niem", "TỔNG GIÁ TRỊ THIẾT BỊ NIÊM YẾT"], ["giam", "GIẢM GIÁ ƯU ĐÃI THIẾT BỊ"], ["sau", "TỔNG GIÁ TRỊ THIẾT BỊ SAU GIẢM GIÁ"], ["ld", "CHI PHÍ LẮP ĐẶT, CÀI ĐẶT HÀNH TRÌNH"], ["km", "KHUYẾN MÃI MIỄN PHÍ LẮP ĐẶT"], ["tong", "TỔNG CỘNG CỔNG TỰ ĐỘNG"]] as const) {
+      G[k] = r; cg.getCell(r, 2).value = label; cg.getCell(r, 2).font = font({ bold: true }); cg.mergeCells(r, 2, r, 6); r++;
+    }
+    cg.getCell(G.niem, 7).value = { formula: `SUM(H9:H${gEnd})` };
+    cg.getCell(G.sau, 7).value = { formula: `SUM(G9:G${gEnd})` };
+    cg.getCell(G.giam, 7).value = { formula: `G${G.sau}-G${G.niem}` };
+    cg.getCell(G.ld, 7).value = { formula: `ROUND(G${G.niem}*G${G.rate},0)` };
+    cg.getCell(G.km, 7).value = { formula: `-G${G.ld}*G${G.free}` };
+    cg.getCell(G.tong, 7).value = { formula: `G${G.sau}+G${G.ld}+G${G.km}` };
+    ["niem", "giam", "sau", "ld", "km", "tong"].forEach((k) => { cg.getCell(G[k], 7).numFmt = NUM; cg.getCell(G[k], 7).font = font({ bold: true }); });
+    cg.getCell(G.tong, 7).font = font({ bold: true, size: 11, color: "FFB91C1C" });
+    r++; cg.getCell(r, 1).value = "Chưa bao gồm: pin dự phòng Lithium, xây hố/đế âm sàn, thoát nước hố motor, ống & dây điện nguồn tới chân cổng, gia cố bản lề/cánh cổng. Công tắc điều khiển cổng FPT nằm trong sheet Smart Home.";
+    cg.mergeCells(r, 1, r, 8); cg.getCell(r, 1).font = font({ italic: true, size: 9 }); cg.getCell(r, 1).alignment = { wrapText: true }; cg.getRow(r).height = 28;
+    [6, 56, 7, 6, 18, 17, 17, 19].forEach((w, k) => (cg.getColumn(k + 1).width = w));
+  }
+
   // ---------- Tổng hợp (first) ----------
   header(th, "BẢNG TỔNG HỢP BÁO GIÁ GIẢI PHÁP NHÀ THÔNG MINH", 6);
   hrow(th, 8, ["STT", "Hạng mục", "Thiết bị niêm yết (đ)", "Giảm giá (đ)", "Lắp đặt (đ)", "Tổng cộng (đ)"]);
   th.getRow(9).values = [1, "Smart Home FPT", { formula: `'Smart Home'!H${T.niem}` }, { formula: `'Smart Home'!H${T.giam}` }, { formula: `'Smart Home'!H${T.ld}` }, { formula: `'Smart Home'!H${T.tong}` }];
   th.getRow(10).values = [2, lightTitle, { formula: `'Chiếu sáng'!F${L.tot}` }, { formula: `'Chiếu sáng'!F${L.ck}` }, { formula: `'Chiếu sáng'!F${L.ld}` }, { formula: `'Chiếu sáng'!F${L.sum}` }];
-  th.getRow(11).values = ["", "TỔNG CỘNG", { formula: "SUM(C9:C10)" }, { formula: "SUM(D9:D10)" }, { formula: "SUM(E9:E10)" }, { formula: "SUM(F9:F10)" }];
-  for (let rr = 9; rr <= 11; rr++) for (let c = 1; c <= 6; c++) { const cell = th.getCell(rr, c); cell.border = border; cell.numFmt = NUM; cell.font = font({ bold: rr === 11, color: c >= 3 && rr < 11 ? GREEN : undefined }); }
-  th.getCell(13, 1).value = `Bằng chữ: ${q.grandWords}`; th.mergeCells(13, 1, 13, 6); th.getCell(13, 1).font = font({ italic: true });
+  if (gl.length) th.getRow(11).values = [3, "Cổng tự động âm sàn AB Gate", { formula: `'Cổng âm sàn'!G${G.niem}` }, { formula: `'Cổng âm sàn'!G${G.giam}` }, { formula: `'Cổng âm sàn'!G${G.ld}+'Cổng âm sàn'!G${G.km}` }, { formula: `'Cổng âm sàn'!G${G.tong}` }];
+  const tr = gl.length ? 12 : 11;
+  th.getRow(tr).values = ["", "TỔNG CỘNG", { formula: `SUM(C9:C${tr - 1})` }, { formula: `SUM(D9:D${tr - 1})` }, { formula: `SUM(E9:E${tr - 1})` }, { formula: `SUM(F9:F${tr - 1})` }];
+  for (let rr = 9; rr <= tr; rr++) for (let c = 1; c <= 6; c++) { const cell = th.getCell(rr, c); cell.border = border; cell.numFmt = NUM; cell.font = font({ bold: rr === tr, color: c >= 3 && rr < tr ? GREEN : undefined }); }
+  th.getCell(tr + 2, 1).value = `Bằng chữ: ${q.grandWords}`; th.mergeCells(tr + 2, 1, tr + 2, 6); th.getCell(tr + 2, 1).font = font({ italic: true });
   [6, 50, 20, 18, 16, 20].forEach((w, k) => (th.getColumn(k + 1).width = w));
   return (await wb.xlsx.writeBuffer()) as ArrayBuffer;
 }

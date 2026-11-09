@@ -10,6 +10,9 @@ export interface Quote {
   sections: QuoteSection[];
   niem: number; giam: number; sau: number; lapDat: number; kmLapDat: number; freeList: number; shTotal: number; shWords: string;
   lightLines: QuoteLine[]; lNiem: number; lCk: number; lInstall: number; lTotal: number;
+  /** Cổng tự động âm sàn AB Gate – hạng mục riêng (như chiếu sáng), không nằm trong Smart Home.
+   *  gInstall = phí lắp thực thu (0 khi được miễn phí lắp – KM thể hiện ở kmLapDat). */
+  gateLines?: QuoteLine[]; gNiem?: number; gGiam?: number; gInstall?: number; gTotal?: number; gWords?: string;
   /** nâng cấp toàn bộ đèn thường AB → đèn thông minh FPT: số bộ và chi phí thêm (sau chiết khấu) */
   upgrade: { qty: number; extra: number };
   grandNiem: number; grandGiam: number; grandTotal: number; grandWords: string;
@@ -34,11 +37,13 @@ export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Setting
     curtain_sw: q("curtain_sw"), curtain_motor: q("curtain_motor"), rail: q("rail"),
     cam_in: q("cam_in"), cam_out: q("cam_out"),
   };
+  const gateLines: QuoteLine[] = shQty.gate_ab > 0 && (cat("gate_ab")?.price ?? 0) > 0 ? [mk("gate_ab", shQty.gate_ab)] : [];
   const sections: QuoteSection[] = [];
   for (const key of ["lighting_ctrl", "gate", "curtain", "sensor", "camera"] as const) {
-    const lines = catalog.filter((c) => c.section === key).map((c) => mk(c.code, shQty[c.code] ?? overrides[c.code] ?? 0)).filter((l) => l.qty > 0 && l.price > 0);
+    // bộ cổng AB Gate tách thành hạng mục riêng (gateLines), Smart Home chỉ giữ công tắc điều khiển cổng
+    const lines = catalog.filter((c) => c.section === key && c.code !== "gate_ab").map((c) => mk(c.code, shQty[c.code] ?? overrides[c.code] ?? 0)).filter((l) => l.qty > 0 && l.price > 0);
     if (!lines.length) continue;
-    const title = key === "gate" && !lines.some((l) => l.code === "gate_ab") ? "II. Giải pháp điều khiển cửa cuốn / cổng" : SECTIONS[key];
+    const title = key === "gate" ? (gateLines.length ? "II. Giải pháp điều khiển cổng tự động" : "II. Giải pháp điều khiển cửa cuốn / cổng") : SECTIONS[key];
     sections.push({ key, title, lines, total: lines.reduce((a, l) => a + l.total, 0), listTotal: lines.reduce((a, l) => a + l.listTotal, 0) });
   }
   // renumber section roman numerals in order of appearance
@@ -48,11 +53,17 @@ export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Setting
   const niem = sections.reduce((a, x) => a + x.listTotal, 0);
   const sau = sections.reduce((a, x) => a + x.total, 0);
   const giam = sau - niem;
-  // items with freeInstall (cổng AB Gate) are installed free when the customer takes the FPT Smart Home package
-  const freeList = sections.flatMap((x) => x.lines).filter((l) => l.freeInstall).reduce((a, l) => a + l.listTotal, 0);
-  const lapDat = Math.round((niem - freeList) * s.installRate);
-  const kmLapDat = Math.round(freeList * s.installRate);
+  const freeList = 0; // (cũ) cổng đã tách khỏi Smart Home
+  const lapDat = Math.round(niem * s.installRate);
   const shTotal = sau + lapDat;
+  // cổng AB Gate: lắp đặt, cài hành trình miễn phí khi chọn hệ sinh thái FPT Smart Home (freeInstall)
+  const gNiem = gateLines.reduce((a, l) => a + l.listTotal, 0);
+  const gSau = gateLines.reduce((a, l) => a + l.total, 0);
+  const gGiam = gSau - gNiem;
+  const gLd = gateLines.reduce((a, l) => a + Math.round(l.listTotal * s.installRate), 0);
+  const kmLapDat = gateLines.filter((l) => l.freeInstall).reduce((a, l) => a + Math.round(l.listTotal * s.installRate), 0);
+  const gInstall = gLd - kmLapDat;
+  const gTotal = gSau + gInstall;
 
   // smart FPT lights first so the customer sees clearly which fixtures are smart and which are ordinary
   const lightQty: Record<string, number> = { athena: 0, downlight_fpt: 0, spotlight_ab: 0, downlight_ab: 0, tube_ab: 0 };
@@ -80,7 +91,7 @@ export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Setting
   const lInstall = Math.round(lNiem * s.lightInstall);
   const lTotal = lNiem - lCk + lInstall;
 
-  const grandTotal = shTotal + lTotal;
+  const grandTotal = shTotal + lTotal + gTotal;
   // đề xuất thêm: đèn tính chiết khấu chiếu sáng (lắp 0đ theo cài đặt), thiết bị Smart Home tính giảm giá + 15% lắp đặt
   const groups = new Map<string, ProposalGroup>();
   for (const p of props) {
@@ -97,6 +108,7 @@ export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Setting
     proposals: [...groups.values()],
     sections, niem, giam, sau, lapDat, kmLapDat, freeList, shTotal, shWords: docSo(shTotal),
     lightLines, lNiem, lCk, lInstall, lTotal, upgrade,
-    grandNiem: niem + lNiem, grandGiam: giam - lCk, grandTotal, grandWords: docSo(grandTotal),
+    gateLines, gNiem, gGiam, gInstall, gTotal, gWords: docSo(gTotal),
+    grandNiem: niem + lNiem + gNiem, grandGiam: giam - lCk + gGiam, grandTotal, grandWords: docSo(grandTotal),
   };
 }

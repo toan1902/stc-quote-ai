@@ -116,7 +116,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
           <table className="t">
             <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá niêm yết</th><th>Giảm</th></tr></thead>
             <tbody>
-              {quote.sections.flatMap((s) => s.lines).concat(quote.lightLines).map((l) => (
+              {quote.sections.flatMap((s) => s.lines).concat(quote.lightLines, quote.gateLines ?? []).map((l) => (
                 <tr key={l.code}>
                   <td>{l.name}{l.vn && <span className="vnTag">VN</span>}{l.section === "light" && (l.smart ? <span className="smtTag">THÔNG MINH</span> : <span className="nrmTag">THƯỜNG</span>)}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{l.code === "gate_ab" ? l.qty : <>
@@ -191,7 +191,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
               <input type="number" min={0} value={gate?.salePrice ?? 0} onChange={(e) => { const v = Number(e.target.value) || 0; setItem("gate_ab", { salePrice: v, discount: gate?.price ? Math.max(0, 1 - v / gate.price) : 0 }); }} /></label>
           </div>
           {gateN > 0 && !(gate?.price) && <p className="warn">Nhập đơn giá bộ cổng AB – chưa có giá thì cổng chưa được đưa vào báo giá.</p>}
-          {gateN > 0 && !!gate?.price && <p className="note">Báo giá tự thêm {gateN} công tắc điều khiển cổng FPT (mở cổng qua app/kịch bản) và 1 trang “Dự toán cổng tự động AB Gate”. Lắp đặt, cài hành trình cổng: <b>miễn phí</b> khi chọn hệ sinh thái FPT Smart Home. Chưa gồm pin Lithium, xây hố/đế âm sàn, thoát nước, đường điện tới chân cổng.</p>}
+          {gateN > 0 && !!gate?.price && <p className="note">Báo giá tự thêm {gateN} công tắc điều khiển cổng FPT (mở cổng qua app/kịch bản) vào Smart Home; bộ cổng là <b>hạng mục riêng (Phần 3)</b> như chiếu sáng, có trang “Dự toán cổng tự động AB Gate”. Lắp đặt, cài hành trình cổng: <b>miễn phí</b> khi chọn hệ sinh thái FPT Smart Home. Chưa gồm pin Lithium, xây hố/đế âm sàn, thoát nước, đường điện tới chân cổng.</p>}
           <h3 style={{ margin: "14px 0 6px" }}>Hạng mục ĐỀ XUẤT – hiện trên báo giá, KHÔNG cộng vào tổng</h3>
           <p className="note">Dùng cho phương án chiếu sáng, cảm biến… để khách tham khảo. Không vào hợp đồng. Nhóm cùng tên được cộng tổng dự kiến riêng.</p>
           {(project.proposals ?? []).length > 0 && <table className="t"><thead><tr><th>Nhóm</th><th>Hạng mục</th><th>SL</th><th /></tr></thead><tbody>
@@ -219,6 +219,7 @@ export default function QuoteEditor({ project, doc, boq, quote, checks, catalog,
           <div className="kpi"><span>Lắp đặt, cấu hình</span><b>{vnd(quote.lapDat)}</b></div>
           <div className="kpi"><span>Smart Home</span><b>{vnd(quote.shTotal)}</b></div>
           <div className="kpi"><span>Chiếu sáng (sau chiết khấu)</span><b>{vnd(quote.lTotal)}</b></div>
+          {(quote.gateLines?.length ?? 0) > 0 && <div className="kpi"><span>Cổng tự động âm sàn AB{quote.kmLapDat > 0 ? " (miễn phí lắp)" : ""}</span><b>{vnd(quote.gTotal ?? 0)}</b></div>}
           <hr />
           <div className="kpi big"><span>TỔNG CỘNG</span><span>{vnd(quote.grandTotal)}</span></div>
           <p className="note"><i>{quote.grandWords}</i></p>
