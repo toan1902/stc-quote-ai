@@ -101,6 +101,8 @@ export interface Settings {
   installOnSale?: boolean;
   /** giá niêm yết riêng cho khách này theo mã hàng, vd { "gate_sw": 1639000 } */
   priceOverrides?: Record<string, number>;
+  /** % giảm riêng theo mã hàng (ưu tiên hơn shDiscount), vd { "gate_ab": 0.2185 } */
+  discountOverrides?: Record<string, number>;
 }
 
 export interface Project {

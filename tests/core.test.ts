@@ -303,3 +303,28 @@ test("tuỳ chọn theo khách (takeoff options): giảm SH chung, lắp trên g
   const w = q.lightLines.find((l) => l.code === "wall_ab")!;
   assert.equal(w.qty, 16); assert.equal(w.total, 16 * 888000);
 });
+
+test("nạp báo giá có sẵn (Anh Mạnh 0911): dựng lại khớp tổng 61.968.095 + 57.763.500", async () => {
+  const { quoteToTakeoff, codeOf } = await import("../lib/core/quoteImport.ts");
+  const { importTakeoff } = await import("../lib/core/takeoff.ts");
+  assert.equal(codeOf("Đèn LED âm trần Spotlight góc 24 Athena 76/12W BLE thông minh"), "athena");
+  assert.equal(codeOf("Đèn LED âm trần Spotlight thường"), "spotlight_ab");
+  assert.equal(codeOf("2*5W, Gắn tường ngoài nhà"), "wall_ab");
+  const it = (name: string, qty: number, price: number, discount: number, group = "smarthome") => ({ name, qty, price, discount, group });
+  const sh = { customer: "Anh Mạnh", items: [
+    it("Công tắc cảm ứng 1 nút", 4, 2079000, 0.3), it("Công tắc cảm ứng 2 nút", 9, 2079000, 0.3), it("Công tắc cảm ứng 3 nút", 6, 2079000, 0.3), it("Công tắc cảm ứng 4 nút", 5, 2079000, 0.3),
+    it("Bộ điều khiển trung tâm và thiết bị mở rộng sóng", 1, 4329000, 0.3), it("Công tắc điều khiển động cơ cổng", 1, 1639000, 0.3),
+    it("Công tắc điều khiển động cơ rèm", 3, 1639000, 0.3), it("Động cơ và phụ kiện rèm cửa kéo ngang", 2, 3774000, 0.3), it("Thanh ray rèm kéo ngang", 7, 550000, 0.3),
+    it("FPT Camera SE 3 (Indoor 360°)", 2, 1100000, 0.3), it("FPT Camera SE 2S (Outdoor Cảnh Báo)", 2, 1300000, 0.3)],
+    totals: { shList: 76979000, shDiscount: 23093700, shInstall: 8082795, shTotal: 61968095 } };
+  const li = { items: [
+    it("Đèn LED Downlight 9W", 20, 248000, 0.35, "light"), it("Đèn LED âm trần Spotlight góc 24 Athena 76/12W BLE thông minh", 30, 869000, 0.35, "light"),
+    it("Đèn LED âm trần Spotlight thường", 31, 588000, 0.35, "light"), it("ĐÈN LED ỐNG BƠ 12W, 4000K", 14, 968000, 0.35, "light"), it("2*5W, Gắn tường ngoài nhà", 16, 888000, 0.35, "light")],
+    totals: { lightList: 77018000, lightDiscount: 26956300, lightInstall: 7701800, lightTotal: 57763500 } };
+  const r = quoteToTakeoff([sh, li], DEFAULT_CATALOG, { sourceName: "0911.pdf" });
+  assert.deepEqual(r.warnings, []);
+  const p = importTakeoff(r.takeoff, "10/11/2026");
+  const s = { ...DEFAULT_SETTINGS, ...p.options };
+  const q = computeQuote(buildBOQ(p, s), DEFAULT_CATALOG, s, p.extras as Record<string, number>);
+  assert.equal(q.shTotal, 61968095); assert.equal(q.lTotal, 57763500); assert.equal(q.grandTotal, 119731595);
+});

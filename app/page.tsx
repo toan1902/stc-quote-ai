@@ -5,6 +5,8 @@ import { buildBOQ } from "@/lib/core/boq";
 import { crossCheck } from "@/lib/core/crosscheck";
 import { computeQuote } from "@/lib/core/pricing";
 import { importTakeoff, validateTakeoff } from "@/lib/core/takeoff";
+import { quoteToTakeoff, printedTotals } from "@/lib/core/quoteImport";
+import { readQuoteFiles } from "@/lib/client/quoteRead";
 import { newId } from "@/lib/core/merge";
 import { loadPdf, type PdfDoc } from "@/lib/client/pdf";
 import { analyseStructure, countDevices, COUNT_DISCIPLINES } from "@/lib/client/pipeline";
@@ -48,6 +50,7 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [qImport, setQImport] = useState<{ warnings: string[]; printed: { sh: number | null; light: number | null; grand: number | null } } | null>(null);
   const [health, setHealth] = useState<{ provider: string; model: string; configured: boolean } | null>(null);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -189,6 +192,19 @@ export default function Home() {
     } catch (e) { setError(`File JSON không hợp lệ: ${(e as Error).message}`); }
   };
 
+  /** Nạp báo giá có sẵn (PDF/Excel) → AI đọc từng dòng → dựng lại theo mẫu STC (giữ đúng SL, đơn giá, % giảm, phí lắp). */
+  const importQuote = (files: File[]) => run(async (signal) => {
+    setLogs([]); setQImport(null);
+    const reads = await readQuoteFiles(files, log, signal);
+    const n = reads.reduce((a, r) => a + (r.items?.length ?? 0), 0);
+    if (!n) throw new Error("AI không đọc được dòng thiết bị nào – kiểm tra file là báo giá có cột SL / đơn giá");
+    const r = quoteToTakeoff(reads, catalog, { customer: form.customer, address: form.customer ? form.address : undefined, date: form.customer ? form.date : undefined, sourceName: files.map((f) => f.name).join(" + ") });
+    log(`Đã đọc ${n} dòng, nhận ra ${r.mapped.length} mã hàng${r.warnings.length ? `, ${r.warnings.length} cảnh báo` : ""}.`);
+    const p = importTakeoff(r.takeoff, today());
+    setQImport({ warnings: r.warnings, printed: printedTotals(reads) });
+    setProject({ ...p, options: { ...(settings ?? {}), ...(p.options ?? {}) } as Project["options"], status: "reviewed" }); setStep(3);
+  });
+
   const onEdit = (detections: Project["detections"], l: Omit<EditLog, "at">) =>
     setProject((p) => (p ? { ...p, detections, edits: [...p.edits, { ...l, at: new Date().toISOString() }] } : p));
 
@@ -256,6 +272,13 @@ export default function Home() {
               </ol>
               <label className="drop"><input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />Chọn file takeoff JSON hoặc file hồ sơ <code>HOSO_….json</code></label>
             </div>
+            <div className="card" style={{ gridColumn: "1 / -1" }}>
+              <h2>Hoặc: nạp báo giá có sẵn (PDF / Excel) → dựng lại theo mẫu STC + link online</h2>
+              <p className="note">Chọn 1 hoặc nhiều file báo giá cũ (vd 2 file Smart Home + Chiếu sáng; PDF in ảnh vẫn đọc được). AI đọc từng dòng: tên, SL, đơn giá, % giảm, phí lắp → app dựng lại báo giá theo mẫu STC, giữ đúng giá, rồi bấm “Tạo link báo giá”. Tên khách lấy theo ô bên trái nếu đã nhập, không thì đọc từ “Kính gửi”.</p>
+              <label className="drop"><input type="file" multiple accept=".pdf,.xlsx,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden disabled={busy || !health?.configured} onChange={(e) => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; if (fs.length) importQuote(fs); }} />{busy ? "Đang đọc báo giá…" : "Chọn file báo giá PDF / Excel"}</label>
+              {health && !health.configured && <p className="err">Cần GEMINI_API_KEY trên Vercel để AI đọc báo giá.</p>}
+              {busy && logs.length > 0 && <div className="log">{logs.map((l, i) => <div key={i}>{l}</div>)}</div>}
+            </div>
             <div className="card" style={{ gridColumn: "1 / -1" }}>{savedList()}</div>
           </div>
         )}
@@ -296,6 +319,18 @@ export default function Home() {
           </div>
         )}
 
+        {step === 3 && project && quote && qImport && (
+          <div className="card" style={{ marginBottom: 12 }}>
+            <h2>Đối chiếu với báo giá gốc vừa nạp</h2>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}><tbody>
+              {([["Smart Home", qImport.printed.sh, quote.shTotal], ["Chiếu sáng", qImport.printed.light, quote.lTotal], ["Tổng cộng", qImport.printed.grand, quote.grandTotal]] as const).filter(([, a]) => a != null).map(([k, a, b]) => (
+                <tr key={k}><td>{k}</td><td style={{ textAlign: "right" }}>Bản gốc: <b>{vnd(a!)}</b></td><td style={{ textAlign: "right" }}>App: <b>{vnd(b)}</b></td>
+                  <td style={{ color: a === b ? "#15803d" : "#b91c1c", fontWeight: 700 }}>{a === b ? "✓ khớp" : `lệch ${vnd(b - a!)}`}</td></tr>))}
+            </tbody></table>
+            {qImport.warnings.length > 0 && <ul className="note warn">{qImport.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>}
+            <p className="note">Kiểm tra số lượng/đơn giá ở bảng dưới (ô vàng sửa được), rồi bấm “Tạo link báo giá”. <button onClick={() => setQImport(null)}>Ẩn</button></p>
+          </div>
+        )}
         {step === 3 && project && boq && quote && eff && (
           <QuoteEditor project={project} doc={doc} boq={boq} quote={quote} checks={checks} catalog={catalog} settings={eff}
             onCatalog={(c) => { setCatalog(c); saveCatalog(c); }}

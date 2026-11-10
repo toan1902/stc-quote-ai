@@ -4,7 +4,7 @@ import type { AiTask } from "@/lib/ai/prompts";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // Gemini chậm: 1 model tối đa 80s, có chuyển sang model nhẹ hơn
-const TASKS: AiTask[] = ["classify", "classify_sheet", "frame", "legend", "detect", "verify", "panel", "estimate"];
+const TASKS: AiTask[] = ["classify", "classify_sheet", "frame", "legend", "detect", "verify", "panel", "estimate", "quote_read"];
 
 export async function POST(req: Request) {
   // Image is processed in memory only and never stored (FR-015).

@@ -23,11 +23,13 @@ export interface ProposalLine extends QuoteLine { install: number; est: number; 
 export interface ProposalGroup { group: string; lines: ProposalLine[]; niem: number; est: number }
 
 export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Settings, overrides: Record<string, number> = {}, props: Proposal[] = []): Quote {
-  const SH_SEC = new Set(["lighting_ctrl", "gate", "curtain", "camera"]);
+  const SH_SEC = new Set(["lighting_ctrl", "gate", "curtain", "camera", "sensor"]);
   const catalog = applySwitchShape(catalog0, s.switchShape).map((c) => {
     const price = s.priceOverrides?.[c.code] ?? c.price;
-    const shD = s.shDiscount != null && SH_SEC.has(c.section) && !(c.salePrice != null && c.salePrice > 0);
-    return price === c.price && !shD ? c : { ...c, price, discount: shD ? s.shDiscount! : c.discount };
+    const own = s.discountOverrides?.[c.code];
+    const shD = own == null && s.shDiscount != null && SH_SEC.has(c.section) && !(c.salePrice != null && c.salePrice > 0);
+    if (price === c.price && !shD && own == null) return c;
+    return { ...c, price, discount: own ?? (shD ? s.shDiscount! : c.discount), ...(own != null ? { salePrice: undefined } : {}) };
   });
   const cat = (code: string) => catalog.find((c) => c.code === code)!;
   const q = (code: string) => overrides[code] ?? qtyOf(boq, code);

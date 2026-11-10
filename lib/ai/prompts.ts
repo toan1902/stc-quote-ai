@@ -1,6 +1,6 @@
 import { DEVICE_TYPES } from "../core/types.ts";
 
-export type AiTask = "classify" | "classify_sheet" | "frame" | "legend" | "detect" | "verify" | "panel" | "estimate";
+export type AiTask = "classify" | "classify_sheet" | "frame" | "legend" | "detect" | "verify" | "panel" | "estimate" | "quote_read";
 
 const ROLE = `Bạn là kỹ sư M&E (cơ điện) cao cấp, chuyên bóc khối lượng (BOQ) từ bản vẽ điện dân dụng Việt Nam.
 Nguyên tắc: chỉ báo những gì THẤY RÕ trên ảnh; không đoán; không bỏ sót; mỗi thiết bị vật lý = đúng 1 mục.
@@ -15,6 +15,18 @@ export function buildPrompt(task: AiTask, ctx: Record<string, unknown> = {}): st
     : "\nKhông có bảng ký hiệu riêng: dùng ký hiệu điện TCVN phổ biến.";
 
   switch (task) {
+    case "quote_read":
+      return `Bạn là nhân viên báo giá thiết bị điện thông minh. ${ctx.text ? "Dưới đây là nội dung bảng tính (Excel) của một BÁO GIÁ có sẵn, mỗi dòng là một hàng ô cách nhau bằng dấu |:\n" + String(ctx.text).slice(0, 60000) : "Ảnh là MỘT TRANG của một BÁO GIÁ có sẵn (PDF)."}
+Đọc chính xác từng con số (đơn vị đồng, bỏ dấu chấm ngăn cách nghìn). Không đoán, không tự tính lại; ô không có ghi null.
+1) items: MỌI dòng hàng hoá/thiết bị có số lượng (bỏ dòng tiêu đề nhóm, dòng tổng). Mỗi dòng:
+ {"name": tên thiết bị nguyên văn (không kèm thông số dài), "unit": ĐVT, "qty": số lượng, "price": đơn giá niêm yết, "discount": % giảm dạng 0–1 hoặc null,
+  "after": đơn giá sau giảm hoặc null, "total": thành tiền hoặc null,
+  "group": "smarthome" (công tắc, trung tâm, rèm, camera, cảm biến, cổng…) | "light" (đèn chiếu sáng) | "other"}
+2) totals (chỉ ghi số in trên trang, không có thì null): {"shList","shDiscount","shInstall","shTotal","lightList","lightDiscount","lightInstall","lightTotal","grandTotal"}
+   – sh* là phần Smart Home/thiết bị thông minh, light* là phần chiếu sáng; *Install = chi phí lắp đặt/cấu hình; *Discount ghi số dương.
+3) customer: tên khách sau "Kính gửi" (vd "Anh Mạnh"), address, date (dd/mm/yyyy) nếu có.
+Trả về JSON: {"customer":...,"address":...,"date":...,"items":[...],"totals":{...}}`;
+
     case "classify":
       return `${ROLE}
 Phân loại trang bản vẽ này. Đọc tên bản vẽ trong khung tên (title block) và nội dung.

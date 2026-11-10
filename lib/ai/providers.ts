@@ -45,14 +45,14 @@ const THINK: Record<string, number> = {};
 const THINK_CFGS = [{ thinkingLevel: process.env.GEMINI_THINKING_LEVEL || "low" }, { thinkingBudget: Number(process.env.GEMINI_THINKING_BUDGET ?? 1024) }, null];
 
 async function callGeminiOnce(prompt: string, image: string, model: string): Promise<string> {
-  const { mime, b64 } = splitDataUrl(image);
+  const img = image ? splitDataUrl(image) : null; // không ảnh = gửi văn bản (vd nội dung Excel)
   for (let k = THINK[model] ?? 0; k < THINK_CFGS.length; k++) {
     const cfg = THINK_CFGS[k];
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY! },
       body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ inline_data: { mime_type: mime, data: b64 } }, { text: prompt }] }],
+        contents: [{ role: "user", parts: [...(img ? [{ inline_data: { mime_type: img.mime, data: img.b64 } }] : []), { text: prompt }] }],
         generationConfig: { temperature: 0, responseMimeType: "application/json", ...(cfg ? { thinkingConfig: cfg } : {}) },
       }),
       signal: AbortSignal.timeout(Number(process.env.AI_TIMEOUT_MS ?? 80000)),
@@ -75,13 +75,13 @@ async function callGeminiOnce(prompt: string, image: string, model: string): Pro
 }
 
 async function callClaude(prompt: string, image: string, model: string): Promise<string> {
-  const { mime, b64 } = splitDataUrl(image);
+  const img = image ? splitDataUrl(image) : null;
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model, max_tokens: 8000, temperature: 0,
-      messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: mime, data: b64 } }, { type: "text", text: prompt }] }],
+      messages: [{ role: "user", content: [...(img ? [{ type: "image", source: { type: "base64", media_type: img.mime, data: img.b64 } }] : []), { type: "text", text: prompt }] }],
     }),
   });
   if (r.status === 429 || r.status === 529) throw new RateLimitError(Number(r.headers.get("retry-after")) || 20);
