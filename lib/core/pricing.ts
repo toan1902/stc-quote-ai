@@ -23,7 +23,12 @@ export interface ProposalLine extends QuoteLine { install: number; est: number; 
 export interface ProposalGroup { group: string; lines: ProposalLine[]; niem: number; est: number }
 
 export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Settings, overrides: Record<string, number> = {}, props: Proposal[] = []): Quote {
-  const catalog = applySwitchShape(catalog0, s.switchShape);
+  const SH_SEC = new Set(["lighting_ctrl", "gate", "curtain", "camera"]);
+  const catalog = applySwitchShape(catalog0, s.switchShape).map((c) => {
+    const price = s.priceOverrides?.[c.code] ?? c.price;
+    const shD = s.shDiscount != null && SH_SEC.has(c.section) && !(c.salePrice != null && c.salePrice > 0);
+    return price === c.price && !shD ? c : { ...c, price, discount: shD ? s.shDiscount! : c.discount };
+  });
   const cat = (code: string) => catalog.find((c) => c.code === code)!;
   const q = (code: string) => overrides[code] ?? qtyOf(boq, code);
   const mk = (code: string, qty: number): QuoteLine => {
@@ -54,7 +59,7 @@ export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Setting
   const sau = sections.reduce((a, x) => a + x.total, 0);
   const giam = sau - niem;
   const freeList = 0; // (cũ) cổng đã tách khỏi Smart Home
-  const lapDat = Math.round(niem * s.installRate);
+  const lapDat = Math.round((s.installOnSale ? sau : niem) * s.installRate);
   const shTotal = sau + lapDat;
   // cổng AB Gate: lắp đặt, cài hành trình miễn phí khi chọn hệ sinh thái FPT Smart Home (freeInstall)
   const gNiem = gateLines.reduce((a, l) => a + l.listTotal, 0);
@@ -66,7 +71,7 @@ export function computeQuote(boq: BOQResult, catalog0: CatalogItem[], s: Setting
   const gTotal = gSau + gInstall;
 
   // smart FPT lights first so the customer sees clearly which fixtures are smart and which are ordinary
-  const lightQty: Record<string, number> = { athena: 0, downlight_fpt: 0, spotlight_ab: 0, downlight_ab: 0, tube_ab: 0 };
+  const lightQty: Record<string, number> = { athena: 0, downlight_fpt: 0, spotlight_ab: 0, downlight_ab: 0, tube_ab: 0, wall_ab: 0 };
   lightQty[s.defaultDownlight] += q("downlight");
   lightQty[s.defaultSpotlight ?? "spotlight_ab"] += q("spotlight");
   for (const k of Object.keys(lightQty)) if (overrides[`light_${k}`] != null) lightQty[k] = overrides[`light_${k}`];

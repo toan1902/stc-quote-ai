@@ -291,3 +291,15 @@ test("Đề xuất thêm: hiện theo nhóm, KHÔNG cộng vào tổng (Anh Hi�
   assert.equal(g["Phương án B – đèn thông minh FPT"], 25396800);
   assert.equal(g["Cảm biến hiện diện nhà vệ sinh"], 5 * 1047200 + Math.round(1309000 * 0.15) * 5);
 });
+
+test("tuỳ chọn theo khách (takeoff options): giảm SH chung, lắp trên giá sau giảm, giá riêng, đèn gắn tường", () => {
+  const boq = buildBOQ(load(), DEFAULT_SETTINGS);
+  const s = { ...DEFAULT_SETTINGS, shDiscount: 0.3, installOnSale: true, priceOverrides: { gate_sw: 1639000 } };
+  const q = computeQuote(boq, DEFAULT_CATALOG, s, { gate_sw: 1, light_wall_ab: 16 });
+  const sw = q.sections.flatMap((x) => x.lines).find((l) => l.code === "gate_sw")!;
+  assert.equal(sw.price, 1639000); assert.equal(sw.after, 1147300);
+  assert.ok(q.sections.flatMap((x) => x.lines).every((l) => l.discount === 0.3));
+  assert.equal(q.lapDat, Math.round(q.sau * 0.15));
+  const w = q.lightLines.find((l) => l.code === "wall_ab")!;
+  assert.equal(w.qty, 16); assert.equal(w.total, 16 * 888000);
+});

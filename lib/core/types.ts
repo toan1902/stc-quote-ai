@@ -95,6 +95,12 @@ export interface Settings {
   areaPerHubM2: number;
   proposalSpot: "athena" | "spotlight_ab" | "downlight_fpt";  // loại đèn cho spotlight đề xuất
   includeProposal: boolean;                  // đưa đề xuất (giá + trang bản vẽ) vào báo giá
+  /** Theo từng khách (nạp từ takeoff JSON options): % giảm chung cho thiết bị Smart Home (thay % trong bảng giá; không áp cho cổng AB Gate có giá bán riêng) */
+  shDiscount?: number;
+  /** true = phí lắp Smart Home tính trên giá SAU giảm (mặc định: trên giá niêm yết) */
+  installOnSale?: boolean;
+  /** giá niêm yết riêng cho khách này theo mã hàng, vd { "gate_sw": 1639000 } */
+  priceOverrides?: Record<string, number>;
 }
 
 export interface Project {
